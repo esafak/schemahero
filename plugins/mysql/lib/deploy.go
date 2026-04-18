@@ -482,13 +482,10 @@ func buildForeignKeyStatements(m *MysqlConnection, tableName string, mysqlTableS
 
 	for _, foreignKey := range mysqlTableSchema.ForeignKeys {
 		var statement string
-		var matchedForeignKey *types.ForeignKey
-		for _, currentForeignKey := range currentForeignKeys {
-			if currentForeignKey.Equals(types.MysqlSchemaForeignKeyToForeignKey(foreignKey)) {
-				goto Next
-			}
-
-			matchedForeignKey = currentForeignKey
+		desiredForeignKey := types.MysqlSchemaForeignKeyToForeignKey(foreignKey)
+		exactMatch, matchedForeignKey := types.FindForeignKeyReplacement(currentForeignKeys, desiredForeignKey, types.GenerateMysqlFKName(tableName, foreignKey))
+		if exactMatch {
+			goto Next
 		}
 
 		// drop and readd?  is this always ok

@@ -151,3 +151,86 @@ func TestForeignKey_Equals(t *testing.T) {
 		})
 	}
 }
+
+func TestFindForeignKeyReplacement(t *testing.T) {
+	tests := []struct {
+		name                string
+		currentForeignKeys  []*ForeignKey
+		desiredForeignKey   *ForeignKey
+		desiredName         string
+		expectedExactMatch  bool
+		expectedReplacement *ForeignKey
+	}{
+		{
+			name: "returns exact match without replacement",
+			currentForeignKeys: []*ForeignKey{
+				{
+					Name:          "fk_st_customer_id",
+					ChildColumns:  []string{"customer_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"id"},
+				},
+			},
+			desiredForeignKey: &ForeignKey{
+				Name:          "fk_st_customer_id",
+				ChildColumns:  []string{"customer_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"id"},
+			},
+			desiredName:        "fk_st_customer_id",
+			expectedExactMatch: true,
+		},
+		{
+			name: "does not replace unrelated existing foreign key",
+			currentForeignKeys: []*ForeignKey{
+				{
+					Name:          "fk_st_customer_id",
+					ChildColumns:  []string{"customer_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"id"},
+				},
+			},
+			desiredForeignKey: &ForeignKey{
+				Name:          "fk_st_config_id",
+				ChildColumns:  []string{"config_id"},
+				ParentTable:   "configs",
+				ParentColumns: []string{"id"},
+			},
+			desiredName:        "fk_st_config_id",
+			expectedExactMatch: false,
+		},
+		{
+			name: "returns same-name foreign key to replace when definition changes",
+			currentForeignKeys: []*ForeignKey{
+				{
+					Name:          "fk_st_customer_id",
+					ChildColumns:  []string{"customer_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"legacy_id"},
+				},
+			},
+			desiredForeignKey: &ForeignKey{
+				Name:          "fk_st_customer_id",
+				ChildColumns:  []string{"customer_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"id"},
+			},
+			desiredName: "fk_st_customer_id",
+			expectedReplacement: &ForeignKey{
+				Name:          "fk_st_customer_id",
+				ChildColumns:  []string{"customer_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"legacy_id"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			exactMatch, replacement := FindForeignKeyReplacement(tt.currentForeignKeys, tt.desiredForeignKey, tt.desiredName)
+
+			assert.Equal(t, tt.expectedExactMatch, exactMatch)
+			assert.Equal(t, tt.expectedReplacement, replacement)
+		})
+	}
+}
