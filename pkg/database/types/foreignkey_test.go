@@ -151,3 +151,67 @@ func TestForeignKey_Equals(t *testing.T) {
 		})
 	}
 }
+
+func TestAppendForeignKeyRow(t *testing.T) {
+	tests := []struct {
+		name     string
+		rows     []ForeignKey
+		expected []*ForeignKey
+	}{
+		{
+			name: "appends a new foreign key when the name is not present",
+			rows: []ForeignKey{
+				{
+					Name:          "fk_st_customer_id",
+					ChildColumns:  []string{"customer_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"id"},
+				},
+			},
+			expected: []*ForeignKey{
+				{
+					Name:          "fk_st_customer_id",
+					ChildColumns:  []string{"customer_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"id"},
+				},
+			},
+		},
+		{
+			name: "merges multiple rows for one composite foreign key",
+			rows: []ForeignKey{
+				{
+					Name:          "fk_orders_customer",
+					ChildColumns:  []string{"customer_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"id"},
+				},
+				{
+					Name:          "fk_orders_customer",
+					ChildColumns:  []string{"account_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"account_id"},
+				},
+			},
+			expected: []*ForeignKey{
+				{
+					Name:          "fk_orders_customer",
+					ChildColumns:  []string{"customer_id", "account_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"id", "account_id"},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			foreignKeys := []*ForeignKey{}
+			for _, row := range tt.rows {
+				foreignKeys = AppendForeignKeyRow(foreignKeys, row)
+			}
+
+			assert.Equal(t, tt.expected, foreignKeys)
+		})
+	}
+}

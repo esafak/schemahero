@@ -208,18 +208,7 @@ func (p *PostgresConnection) ListTableForeignKeys(databaseName string, tableName
 			ParentColumns: []string{parentColumn},
 		}
 
-		for _, foundFk := range foreignKeys {
-			if foundFk.Name == name {
-				foundFk.ChildColumns = append(foreignKey.ChildColumns, childColumn)
-				foundFk.ParentColumns = append(foreignKey.ParentColumns, parentColumn)
-
-				goto Appended
-			}
-		}
-
-		foreignKeys = append(foreignKeys, &foreignKey)
-
-	Appended:
+		foreignKeys = types.AppendForeignKeyRow(foreignKeys, foreignKey)
 	}
 
 	return foreignKeys, nil

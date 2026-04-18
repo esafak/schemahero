@@ -78,6 +78,21 @@ func normalizeOnDelete(s string) string {
 	return upper
 }
 
+// AppendForeignKeyRow merges a single database row into the accumulated
+// foreign keys, appending columns when the constraint name already exists.
+func AppendForeignKeyRow(foreignKeys []*ForeignKey, foreignKey ForeignKey) []*ForeignKey {
+	for _, foundFk := range foreignKeys {
+		if foundFk.Name == foreignKey.Name {
+			foundFk.ChildColumns = append(foundFk.ChildColumns, foreignKey.ChildColumns...)
+			foundFk.ParentColumns = append(foundFk.ParentColumns, foreignKey.ParentColumns...)
+
+			return foreignKeys
+		}
+	}
+
+	return append(foreignKeys, &foreignKey)
+}
+
 func ForeignKeyToMysqlSchemaForeignKey(foreignKey *ForeignKey) *schemasv1alpha4.MysqlTableForeignKey {
 	schemaForeignKey := schemasv1alpha4.MysqlTableForeignKey{
 		Columns: foreignKey.ChildColumns,
