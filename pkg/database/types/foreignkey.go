@@ -78,6 +78,25 @@ func normalizeOnDelete(s string) string {
 	return upper
 }
 
+// FindForeignKeyReplacement returns whether the desired foreign key already
+// exists exactly, and if not, whether there is a same-name constraint that
+// should be replaced before adding the desired definition.
+func FindForeignKeyReplacement(currentForeignKeys []*ForeignKey, desiredForeignKey *ForeignKey, desiredName string) (bool, *ForeignKey) {
+	var matchedForeignKey *ForeignKey
+
+	for _, currentForeignKey := range currentForeignKeys {
+		if currentForeignKey.Equals(desiredForeignKey) {
+			return true, nil
+		}
+
+		if currentForeignKey.Name == desiredName {
+			matchedForeignKey = currentForeignKey
+		}
+	}
+
+	return false, matchedForeignKey
+}
+
 func ForeignKeyToMysqlSchemaForeignKey(foreignKey *ForeignKey) *schemasv1alpha4.MysqlTableForeignKey {
 	schemaForeignKey := schemasv1alpha4.MysqlTableForeignKey{
 		Columns: foreignKey.ChildColumns,

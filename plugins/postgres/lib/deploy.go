@@ -349,13 +349,10 @@ func BuildForeignKeyStatements(p *PostgresConnection, tableName string, postgres
 
 	for _, foreignKey := range postgresTableSchema.ForeignKeys {
 		var statement string
-		var matchedForeignKey *types.ForeignKey
-		for _, currentForeignKey := range currentForeignKeys {
-			if currentForeignKey.Equals(types.PostgresqlSchemaForeignKeyToForeignKey(foreignKey)) {
-				goto Next
-			}
-
-			matchedForeignKey = currentForeignKey
+		desiredForeignKey := types.PostgresqlSchemaForeignKeyToForeignKey(foreignKey)
+		exactMatch, matchedForeignKey := types.FindForeignKeyReplacement(currentForeignKeys, desiredForeignKey, types.GeneratePostgresqlFKName(tableName, foreignKey))
+		if exactMatch {
+			goto Next
 		}
 
 		// drop and readd?  is this always ok
