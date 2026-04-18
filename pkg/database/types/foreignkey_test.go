@@ -50,10 +50,6 @@ func TestForeignKey_Equals(t *testing.T) {
 			expected: false,
 		},
 		{
-			// This is the key bug scenario: the DB returns the auto-generated
-			// constraint name and uppercase OnDelete, but the spec has no
-			// explicit name and lowercase onDelete. These should be considered
-			// equal because they represent the same foreign key.
 			name: "db has name and uppercase CASCADE, spec has no name and lowercase cascade",
 			fk: &ForeignKey{
 				Name:          "assignment_employee_id_fkey",
@@ -72,7 +68,6 @@ func TestForeignKey_Equals(t *testing.T) {
 			expected: true,
 		},
 		{
-			// DB returns "NO ACTION" as the default when no ON DELETE is specified
 			name: "db has NO ACTION, spec has empty onDelete",
 			fk: &ForeignKey{
 				Name:          "assignment_employee_id_fkey",
@@ -163,14 +158,12 @@ func TestFindForeignKeyReplacement(t *testing.T) {
 	}{
 		{
 			name: "returns exact match without replacement",
-			currentForeignKeys: []*ForeignKey{
-				{
-					Name:          "fk_st_customer_id",
-					ChildColumns:  []string{"customer_id"},
-					ParentTable:   "customers",
-					ParentColumns: []string{"id"},
-				},
-			},
+			currentForeignKeys: []*ForeignKey{{
+				Name:          "fk_st_customer_id",
+				ChildColumns:  []string{"customer_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"id"},
+			}},
 			desiredForeignKey: &ForeignKey{
 				Name:          "fk_st_customer_id",
 				ChildColumns:  []string{"customer_id"},
@@ -182,14 +175,12 @@ func TestFindForeignKeyReplacement(t *testing.T) {
 		},
 		{
 			name: "does not replace unrelated existing foreign key",
-			currentForeignKeys: []*ForeignKey{
-				{
-					Name:          "fk_st_customer_id",
-					ChildColumns:  []string{"customer_id"},
-					ParentTable:   "customers",
-					ParentColumns: []string{"id"},
-				},
-			},
+			currentForeignKeys: []*ForeignKey{{
+				Name:          "fk_st_customer_id",
+				ChildColumns:  []string{"customer_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"id"},
+			}},
 			desiredForeignKey: &ForeignKey{
 				Name:          "fk_st_config_id",
 				ChildColumns:  []string{"config_id"},
@@ -201,44 +192,12 @@ func TestFindForeignKeyReplacement(t *testing.T) {
 		},
 		{
 			name: "returns same-name foreign key to replace when definition changes",
-			currentForeignKeys: []*ForeignKey{
-				{
-					Name:          "fk_st_customer_id",
-					ChildColumns:  []string{"customer_id"},
-					ParentTable:   "customers",
-					ParentColumns: []string{"legacy_id"},
-				},
-			},
-			desiredForeignKey: &ForeignKey{
+			currentForeignKeys: []*ForeignKey{{
 				Name:          "fk_st_customer_id",
 				ChildColumns:  []string{"customer_id"},
 				ParentTable:   "customers",
-				ParentColumns: []string{"id"},
-			},
-			desiredName: "fk_st_customer_id",
-				expectedReplacement: &ForeignKey{
-					Name:          "fk_st_customer_id",
-					ChildColumns:  []string{"customer_id"},
-					ParentTable:   "customers",
-					ParentColumns: []string{"legacy_id"},
-				},
-		},
-		{
-			name: "replaces only matching named foreign key when multiple exist",
-			currentForeignKeys: []*ForeignKey{
-				{
-					Name:          "fk_st_customer_id",
-					ChildColumns:  []string{"customer_id"},
-					ParentTable:   "customers",
-					ParentColumns: []string{"legacy_id"},
-				},
-				{
-					Name:          "fk_st_config_id",
-					ChildColumns:  []string{"config_id"},
-					ParentTable:   "configs",
-					ParentColumns: []string{"id"},
-				},
-			},
+				ParentColumns: []string{"legacy_id"},
+			}},
 			desiredForeignKey: &ForeignKey{
 				Name:          "fk_st_customer_id",
 				ChildColumns:  []string{"customer_id"},
@@ -253,14 +212,88 @@ func TestFindForeignKeyReplacement(t *testing.T) {
 				ParentColumns: []string{"legacy_id"},
 			},
 		},
+		{
+			name: "replaces only matching named foreign key when multiple exist",
+			currentForeignKeys: []*ForeignKey{
+				{Name: "fk_st_customer_id", ChildColumns: []string{"customer_id"}, ParentTable: "customers", ParentColumns: []string{"legacy_id"}},
+				{Name: "fk_st_config_id", ChildColumns: []string{"config_id"}, ParentTable: "configs", ParentColumns: []string{"id"}},
+			},
+			desiredForeignKey: &ForeignKey{Name: "fk_st_customer_id", ChildColumns: []string{"customer_id"}, ParentTable: "customers", ParentColumns: []string{"id"}},
+			desiredName:       "fk_st_customer_id",
+			expectedReplacement: &ForeignKey{
+				Name:          "fk_st_customer_id",
+				ChildColumns:  []string{"customer_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"legacy_id"},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			exactMatch, replacement := FindForeignKeyReplacement(tt.currentForeignKeys, tt.desiredForeignKey, tt.desiredName)
-
 			assert.Equal(t, tt.expectedExactMatch, exactMatch)
 			assert.Equal(t, tt.expectedReplacement, replacement)
+		})
+	}
+}
+
+func TestAppendForeignKeyRow(t *testing.T) {
+	tests := []struct {
+		name     string
+		rows     []ForeignKey
+		expected []*ForeignKey
+	}{
+		{
+			name: "appends a new foreign key when the name is not present",
+			rows: []ForeignKey{{
+				Name:          "fk_st_customer_id",
+				ChildColumns:  []string{"customer_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"id"},
+			}},
+			expected: []*ForeignKey{{
+				Name:          "fk_st_customer_id",
+				ChildColumns:  []string{"customer_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"id"},
+			}},
+		},
+		{
+			name: "merges multiple rows for one composite foreign key",
+			rows: []ForeignKey{
+				{Name: "fk_orders_customer", ChildColumns: []string{"customer_id"}, ParentTable: "customers", ParentColumns: []string{"id"}},
+				{Name: "fk_orders_customer", ChildColumns: []string{"account_id"}, ParentTable: "customers", ParentColumns: []string{"account_id"}},
+			},
+			expected: []*ForeignKey{{
+				Name:          "fk_orders_customer",
+				ChildColumns:  []string{"customer_id", "account_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"id", "account_id"},
+			}},
+		},
+		{
+			name: "keeps independent constraints separate while aggregating composites",
+			rows: []ForeignKey{
+				{Name: "fk_orders_customer", ChildColumns: []string{"customer_id"}, ParentTable: "customers", ParentColumns: []string{"id"}},
+				{Name: "fk_orders_vendor", ChildColumns: []string{"vendor_id"}, ParentTable: "vendors", ParentColumns: []string{"id"}},
+				{Name: "fk_orders_customer", ChildColumns: []string{"account_id"}, ParentTable: "customers", ParentColumns: []string{"account_id"}},
+			},
+			expected: []*ForeignKey{
+				{Name: "fk_orders_customer", ChildColumns: []string{"customer_id", "account_id"}, ParentTable: "customers", ParentColumns: []string{"id", "account_id"}},
+				{Name: "fk_orders_vendor", ChildColumns: []string{"vendor_id"}, ParentTable: "vendors", ParentColumns: []string{"id"}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			foreignKeys := []*ForeignKey{}
+			for _, row := range tt.rows {
+				foreignKeys = AppendForeignKeyRow(foreignKeys, row)
+			}
+
+			assert.Equal(t, tt.expected, foreignKeys)
 		})
 	}
 }
