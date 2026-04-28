@@ -42,6 +42,8 @@ func Test_ColumnsMatch(t *testing.T) {
 func Test_AlterColumnStatments(t *testing.T) {
 	defaultEleven := "11"
 	defaultEmpty := ""
+	defaultNow := "now()"
+	defaultCurrentTimestamp := "CURRENT_TIMESTAMP"
 
 	tests := []struct {
 		name               string
@@ -318,6 +320,61 @@ func Test_AlterColumnStatments(t *testing.T) {
 				`update "t" set "a"='11' where "a" is null`,
 				`alter table "t" alter column "a" set not null`,
 			},
+		},
+		{
+			name:      "default function not quoted",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.PostgresqlTableColumn{
+				{
+					Name:    "a",
+					Type:    "timestamp without time zone",
+					Default: &defaultNow,
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "a",
+				DataType: "timestamp without time zone",
+			},
+			expectedStatements: []string{`alter table "t" alter column "a" set default now()`},
+		},
+		{
+			name:      "default function add not null",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.PostgresqlTableColumn{
+				{
+					Name:    "a",
+					Type:    "timestamp without time zone",
+					Default: &defaultNow,
+					Constraints: &schemasv1alpha4.PostgresqlTableColumnConstraints{
+						NotNull: &trueValue,
+					},
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "a",
+				DataType: "timestamp without time zone",
+			},
+			expectedStatements: []string{
+				`alter table "t" alter column "a" set default now()`,
+				`update "t" set "a"=now() where "a" is null`,
+				`alter table "t" alter column "a" set not null`,
+			},
+		},
+		{
+			name:      "default CURRENT_TIMESTAMP not quoted",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.PostgresqlTableColumn{
+				{
+					Name:    "a",
+					Type:    "timestamp without time zone",
+					Default: &defaultCurrentTimestamp,
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "a",
+				DataType: "timestamp without time zone",
+			},
+			expectedStatements: []string{`alter table "t" alter column "a" set default CURRENT_TIMESTAMP`},
 		},
 	}
 

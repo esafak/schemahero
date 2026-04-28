@@ -12,6 +12,8 @@ import (
 
 func Test_mysqlColumnAsInsert(t *testing.T) {
 	default11 := "11"
+	defaultNow := "now()"
+	defaultCurrentTimestamp := "CURRENT_TIMESTAMP"
 	tests := []struct {
 		name              string
 		column            *schemasv1alpha4.MysqlTableColumn
@@ -77,6 +79,24 @@ func Test_mysqlColumnAsInsert(t *testing.T) {
 				},
 			},
 			expectedStatement: "`obj` json not null",
+		},
+		{
+			name: "timestamp default CURRENT_TIMESTAMP not quoted",
+			column: &schemasv1alpha4.MysqlTableColumn{
+				Name: "c",
+				Type: "timestamp",
+				Default: &defaultCurrentTimestamp,
+			},
+			expectedStatement: "`c` timestamp default CURRENT_TIMESTAMP",
+		},
+		{
+			name: "datetime default now() not quoted",
+			column: &schemasv1alpha4.MysqlTableColumn{
+				Name: "c",
+				Type: "datetime",
+				Default: &defaultNow,
+			},
+			expectedStatement: "`c` datetime default now()",
 		},
 	}
 
