@@ -1,8 +1,43 @@
 package types
 
 import (
+	"strings"
+
 	schemasv1alpha4 "github.com/schemahero/schemahero/pkg/apis/schemas/v1alpha4"
 )
+
+// ShouldQuoteDefaultValue returns false if the default value is a SQL function
+// call, keyword, or expression that should not be quoted as a string literal.
+// SQL function calls (e.g. now(), uuid_generate_v4()) and SQL keywords
+// (e.g. CURRENT_TIMESTAMP, TRUE, FALSE) must not be quoted, otherwise the
+// database will treat them as literal strings instead of evaluating them.
+func ShouldQuoteDefaultValue(value string) bool {
+	// Don't quote values that look like SQL function calls or expressions
+	// containing parentheses (e.g. now(), gen_random_uuid(), (now() + interval '1 day'))
+	if strings.Contains(value, "(") {
+		return false
+	}
+
+	// Don't quote SQL keywords/constants that should be passed as-is
+	upper := strings.ToUpper(value)
+	switch upper {
+	case "CURRENT_TIMESTAMP", "CURRENT_DATE", "CURRENT_TIME",
+		"CURRENT_USER", "USER", "SESSION_USER", "SYSTEM_USER",
+		"NULL", "TRUE", "FALSE":
+		return false
+	}
+
+	return true
+}
+
+// FormatDefaultValue returns the default value formatted for use in a SQL DDL
+// statement, quoting it as a string literal only when appropriate.
+func FormatDefaultValue(value string) string {
+	if ShouldQuoteDefaultValue(value) {
+		return "'" + value + "'"
+	}
+	return value
+}
 
 type ColumnConstraints struct {
 	NotNull *bool
