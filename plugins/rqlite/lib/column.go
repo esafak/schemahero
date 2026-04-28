@@ -66,7 +66,11 @@ func rqliteColumnAsInsert(column *schemasv1alpha4.RqliteTableColumn) (string, er
 	}
 
 	if rqliteColumn.ColumnDefault != nil {
-		formatted = fmt.Sprintf("%s default '%s'", formatted, *rqliteColumn.ColumnDefault)
+		if types.ShouldQuoteDefaultValue(*rqliteColumn.ColumnDefault) {
+			formatted = fmt.Sprintf("%s default '%s'", formatted, *rqliteColumn.ColumnDefault)
+		} else {
+			formatted = fmt.Sprintf("%s default %s", formatted, *rqliteColumn.ColumnDefault)
+		}
 	}
 
 	return formatted, nil

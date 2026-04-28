@@ -84,15 +84,7 @@ func mysqlColumnAsInsert(column *schemasv1alpha4.MysqlTableColumn) (string, erro
 	}
 
 	if mysqlColumn.ColumnDefault != nil {
-		quoteDefaultValue := true
-
-		if mysqlColumn.DataType == "datetime" || mysqlColumn.DataType == "timestamp" {
-			if *mysqlColumn.ColumnDefault == "CURRENT_TIMESTAMP" {
-				quoteDefaultValue = false
-			}
-		}
-
-		if quoteDefaultValue {
+		if types.ShouldQuoteDefaultValue(*mysqlColumn.ColumnDefault) {
 			formatted = fmt.Sprintf("%s default '%s'", formatted, *mysqlColumn.ColumnDefault)
 		} else {
 			formatted = fmt.Sprintf("%s default %s", formatted, *mysqlColumn.ColumnDefault)

@@ -9,6 +9,8 @@ import (
 
 func TestAlterDDL(t *testing.T) {
 	default11 := "11"
+	defaultNow := "now()"
+	defaultCurrentTimestamp := "CURRENT_TIMESTAMP"
 	tests := []struct {
 		name           string
 		tableName      string
@@ -37,6 +39,54 @@ func TestAlterDDL(t *testing.T) {
 			},
 			expect: []string{
 				"alter table `t` modify column `col` datatype character set charset_new collate collation_new",
+			},
+		},
+		{
+			name:      "string default is quoted",
+			tableName: "t",
+			existingColumn: types.Column{
+				Name:     "col",
+				DataType: "varchar (255)",
+			},
+			column: types.Column{
+				Name:          "col",
+				DataType:      "varchar (255)",
+				ColumnDefault: &default11,
+			},
+			expect: []string{
+				"alter table `t` modify column `col` varchar (255) default \"11\"",
+			},
+		},
+		{
+			name:      "now() default is not quoted",
+			tableName: "t",
+			existingColumn: types.Column{
+				Name:     "col",
+				DataType: "datetime",
+			},
+			column: types.Column{
+				Name:          "col",
+				DataType:      "datetime",
+				ColumnDefault: &defaultNow,
+			},
+			expect: []string{
+				"alter table `t` modify column `col` datetime default now()",
+			},
+		},
+		{
+			name:      "CURRENT_TIMESTAMP default is not quoted",
+			tableName: "t",
+			existingColumn: types.Column{
+				Name:     "col",
+				DataType: "timestamp",
+			},
+			column: types.Column{
+				Name:          "col",
+				DataType:      "timestamp",
+				ColumnDefault: &defaultCurrentTimestamp,
+			},
+			expect: []string{
+				"alter table `t` modify column `col` timestamp default CURRENT_TIMESTAMP",
 			},
 		},
 	}

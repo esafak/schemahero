@@ -13,6 +13,8 @@ import (
 func Test_AlterColumnStatment(t *testing.T) {
 	defaultEleven := "11"
 	defaultEmpty := ""
+	defaultNow := "now()"
+	defaultCurrentTimestamp := "CURRENT_TIMESTAMP"
 
 	tests := []struct {
 		name               string
@@ -330,6 +332,61 @@ func Test_AlterColumnStatment(t *testing.T) {
 			},
 			expectedStatements: []string{
 				"alter table `t` modify column `c` int (11) not null",
+			},
+		},
+		{
+			name:      "default function now() not quoted",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name:    "a",
+					Type:    "datetime",
+					Default: &defaultNow,
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "a",
+				DataType: "datetime",
+			},
+			expectedStatements: []string{"alter table `t` modify column `a` datetime default now()"},
+		},
+		{
+			name:      "default CURRENT_TIMESTAMP not quoted",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name:    "a",
+					Type:    "timestamp",
+					Default: &defaultCurrentTimestamp,
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "a",
+				DataType: "timestamp",
+			},
+			expectedStatements: []string{"alter table `t` modify column `a` timestamp default CURRENT_TIMESTAMP"},
+		},
+		{
+			name:      "default function with not null add",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name:    "a",
+					Type:    "datetime",
+					Default: &defaultNow,
+					Constraints: &schemasv1alpha4.MysqlTableColumnConstraints{
+						NotNull: &trueValue,
+					},
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "a",
+				DataType: "datetime",
+			},
+			expectedStatements: []string{
+				"alter table `t` modify column `a` datetime default now()",
+				"update `t` set `a`=now() where `a` is null",
+				"alter table `t` modify column `a` datetime not null default now()",
 			},
 		},
 	}
