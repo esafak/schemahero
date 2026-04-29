@@ -55,16 +55,21 @@ func NewPluginDownloader(cacheDir string) *PluginDownloader {
 	}
 }
 
-// GetPluginArtifactRef returns the ORAS artifact reference for a given driver
-// Maps driver names to Docker Hub artifact references following pattern:
-// schemahero/plugin-{driver}:{major-version}
-// Can be overridden at build time via pluginRegistryOverride
+// GetPluginArtifactRef returns the ORAS artifact reference for a given driver.
+//
+// Default pattern:  docker.io/schemahero/plugin-{driver}:{major-version}
+// Override pattern: {registry}/plugin-{driver}:{tag}-{arch}
+//
+// The override format matches the naming used by scripts/push-dev-images.sh
+// which pushes to {registry}/plugin-{driver}:{tag}-{arch} via oras.
 func (d *PluginDownloader) GetPluginArtifactRef(driver string, majorVersion string) string {
 	if pluginRegistryOverride != "" {
-		// For dev builds, append architecture suffix to get the right binary
 		arch := runtime.GOARCH
-		ref := fmt.Sprintf("%s-%s:%s-%s", pluginRegistryOverride, driver, majorVersion, arch)
-		return ref
+		tag := majorVersion
+		if pluginTagOverride != "" {
+			tag = pluginTagOverride
+		}
+		return fmt.Sprintf("%s/plugin-%s:%s-%s", pluginRegistryOverride, driver, tag, arch)
 	}
 	return fmt.Sprintf("docker.io/schemahero/plugin-%s:0", driver)
 }

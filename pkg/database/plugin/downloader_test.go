@@ -2,8 +2,10 @@ package plugin
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -25,6 +27,48 @@ func TestPluginDownloader_GetPluginArtifactRef(t *testing.T) {
 		if result != test.expected {
 			t.Errorf("GetPluginArtifactRef(%s, %s) = %s, expected %s", test.driver, test.majorVersion, result, test.expected)
 		}
+	}
+}
+
+func TestPluginDownloader_GetPluginArtifactRef_WithOverride(t *testing.T) {
+	// Save and restore original values
+	origRegistry := pluginRegistryOverride
+	origTag := pluginTagOverride
+	defer func() {
+		pluginRegistryOverride = origRegistry
+		pluginTagOverride = origTag
+	}()
+
+	downloader := NewPluginDownloader("")
+
+	// Override registry only — tag should come from majorVersion arg
+	SetPluginRegistryOverride("ghcr.io/esafak/schemahero")
+	SetPluginTagOverride("")
+
+	arch := runtime.GOARCH
+
+	tests := []struct {
+		driver       string
+		majorVersion string
+		expected     string
+	}{
+		{"mysql", "dev", fmt.Sprintf("ghcr.io/esafak/schemahero/plugin-mysql:dev-%s", arch)},
+		{"postgres", "dev", fmt.Sprintf("ghcr.io/esafak/schemahero/plugin-postgres:dev-%s", arch)},
+	}
+
+	for _, test := range tests {
+		result := downloader.GetPluginArtifactRef(test.driver, test.majorVersion)
+		if result != test.expected {
+			t.Errorf("GetPluginArtifactRef(%s, %s) = %s, expected %s", test.driver, test.majorVersion, result, test.expected)
+		}
+	}
+
+	// Override both registry and tag
+	SetPluginTagOverride("staging")
+	expectedStaging := fmt.Sprintf("ghcr.io/esafak/schemahero/plugin-mysql:staging-%s", arch)
+	result := downloader.GetPluginArtifactRef("mysql", "ignored")
+	if result != expectedStaging {
+		t.Errorf("GetPluginArtifactRef with tag override = %s, expected %s", result, expectedStaging)
 	}
 }
 
