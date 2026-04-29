@@ -389,6 +389,29 @@ func Test_AlterColumnStatment(t *testing.T) {
 				"alter table `t` modify column `a` datetime not null default now()",
 			},
 		},
+		{
+			name:      "enum default 'user' quoted with not null add",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name:    "role",
+					Type:    "varchar (255)",
+					Default: func() *string { s := "user"; return &s }(),
+					Constraints: &schemasv1alpha4.MysqlTableColumnConstraints{
+						NotNull: &trueValue,
+					},
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "role",
+				DataType: "varchar (255)",
+			},
+			expectedStatements: []string{
+				`alter table ` + "`t`" + ` modify column ` + "`role`" + ` varchar (255) default "user"`,
+				`update ` + "`t`" + ` set ` + "`role`" + `="user" where ` + "`role`" + ` is null`,
+				`alter table ` + "`t`" + ` modify column ` + "`role`" + ` varchar (255) not null default "user"`,
+			},
+		},
 	}
 
 	for _, test := range tests {
