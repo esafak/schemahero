@@ -59,6 +59,7 @@ type FunctionStatus struct {
 // +kubebuilder:printcolumn:name="Database",type=string,JSONPath=`.spec.database`
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
 type Function struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
