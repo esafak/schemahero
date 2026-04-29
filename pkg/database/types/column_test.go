@@ -178,6 +178,133 @@ func TestShouldQuoteDefaultValue(t *testing.T) {
 	}
 }
 
+func TestShouldQuoteDefaultValueForType(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    string
+		dataType string
+		want     bool
+	}{
+		// Enum columns always quote their defaults — even values that look
+		// like SQL keywords.
+		{
+			name:     "enum default 'user' is quoted despite USER keyword",
+			value:    "user",
+			dataType: "enum('admin','user','guest')",
+			want:     true,
+		},
+		{
+			name:     "enum default 'true' is quoted despite TRUE keyword",
+			value:    "true",
+			dataType: "enum('true','false')",
+			want:     true,
+		},
+		{
+			name:     "enum default 'false' is quoted despite FALSE keyword",
+			value:    "false",
+			dataType: "enum('true','false')",
+			want:     true,
+		},
+		{
+			name:     "enum default 'null' is quoted despite NULL keyword",
+			value:    "null",
+			dataType: "enum('null','not_null')",
+			want:     true,
+		},
+		{
+			name:     "enum default plain string",
+			value:    "active",
+			dataType: "enum('active','inactive')",
+			want:     true,
+		},
+		{
+			name:     "enum uppercase type name",
+			value:    "user",
+			dataType: "ENUM('admin','user')",
+			want:     true,
+		},
+		// Non-enum types delegate to ShouldQuoteDefaultValue
+		{
+			name:     "varchar default 'hello' is quoted",
+			value:    "hello",
+			dataType: "varchar (255)",
+			want:     true,
+		},
+		{
+			name:     "timestamp default CURRENT_TIMESTAMP not quoted",
+			value:    "CURRENT_TIMESTAMP",
+			dataType: "timestamp",
+			want:     false,
+		},
+		{
+			name:     "datetime default now() not quoted",
+			value:    "now()",
+			dataType: "datetime",
+			want:     false,
+		},
+		{
+			name:     "varchar default 'user' is quoted (USER not treated as keyword)",
+			value:    "user",
+			dataType: "varchar (255)",
+			want:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ShouldQuoteDefaultValueForType(tt.value, tt.dataType)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestFormatDefaultValueForType(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    string
+		dataType string
+		want     string
+	}{
+		{
+			name:     "enum default 'user' is quoted",
+			value:    "user",
+			dataType: "enum('admin','user','guest')",
+			want:     "'user'",
+		},
+		{
+			name:     "enum default 'true' is quoted",
+			value:    "true",
+			dataType: "enum('true','false')",
+			want:     "'true'",
+		},
+		{
+			name:     "timestamp default CURRENT_TIMESTAMP not quoted",
+			value:    "CURRENT_TIMESTAMP",
+			dataType: "timestamp",
+			want:     "CURRENT_TIMESTAMP",
+		},
+		{
+			name:     "datetime default now() not quoted",
+			value:    "now()",
+			dataType: "datetime",
+			want:     "now()",
+		},
+		{
+			name:     "varchar default 'hello' is quoted",
+			value:    "hello",
+			dataType: "varchar (255)",
+			want:     "'hello'",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FormatDefaultValueForType(tt.value, tt.dataType)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestFormatDefaultValue(t *testing.T) {
 	tests := []struct {
 		name  string

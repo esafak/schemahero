@@ -126,6 +126,15 @@ func Test_mysqlColumnAsInsert(t *testing.T) {
 			},
 			expectedStatement: "`c` datetime default now()",
 		},
+		{
+			name: "varchar default 'user' quoted despite USER keyword",
+			column: &schemasv1alpha4.MysqlTableColumn{
+				Name: "c",
+				Type: "varchar (255)",
+				Default: func() *string { s := "user"; return &s }(),
+			},
+			expectedStatement: "`c` varchar (255) default 'user'",
+		},
 	}
 
 	for _, test := range tests {
