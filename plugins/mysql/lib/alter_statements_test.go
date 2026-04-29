@@ -89,6 +89,38 @@ func TestAlterDDL(t *testing.T) {
 				"alter table `t` modify column `col` timestamp default CURRENT_TIMESTAMP",
 			},
 		},
+		{
+			name:      "enum default 'user' is quoted despite keyword collision",
+			tableName: "t",
+			existingColumn: types.Column{
+				Name:     "role",
+				DataType: "enum('admin','user','guest')",
+			},
+			column: types.Column{
+				Name:          "role",
+				DataType:      "enum('admin','user','guest')",
+				ColumnDefault: func() *string { s := "user"; return &s }(),
+			},
+			expect: []string{
+				`alter table ` + "`t`" + ` modify column ` + "`role`" + ` enum('admin','user','guest') default "user"`,
+			},
+		},
+		{
+			name:      "enum default 'true' is quoted despite keyword collision",
+			tableName: "t",
+			existingColumn: types.Column{
+				Name:     "flag",
+				DataType: "enum('true','false')",
+			},
+			column: types.Column{
+				Name:          "flag",
+				DataType:      "enum('true','false')",
+				ColumnDefault: func() *string { s := "true"; return &s }(),
+			},
+			expect: []string{
+				`alter table ` + "`t`" + ` modify column ` + "`flag`" + ` enum('true','false') default "true"`,
+			},
+		},
 	}
 
 	for _, tt := range tests {

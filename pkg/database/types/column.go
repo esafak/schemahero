@@ -18,11 +18,14 @@ func ShouldQuoteDefaultValue(value string) bool {
 		return false
 	}
 
-	// Don't quote SQL keywords/constants that should be passed as-is
+	// Don't quote SQL keywords/constants that should be passed as-is.
+	// NOTE: "USER" is intentionally excluded because it collides with common
+	// enum/data values. Use CURRENT_USER, SESSION_USER, or SYSTEM_USER for
+	// the SQL session-user functions.
 	upper := strings.ToUpper(value)
 	switch upper {
 	case "CURRENT_TIMESTAMP", "CURRENT_DATE", "CURRENT_TIME",
-		"CURRENT_USER", "USER", "SESSION_USER", "SYSTEM_USER",
+		"CURRENT_USER", "SESSION_USER", "SYSTEM_USER",
 		"NULL", "TRUE", "FALSE":
 		return false
 	}
@@ -30,10 +33,32 @@ func ShouldQuoteDefaultValue(value string) bool {
 	return true
 }
 
+// ShouldQuoteDefaultValueForType returns whether the default value should be
+// quoted as a string literal, taking the column data type into account.
+//
+// Enum columns always have their defaults quoted because enum member values
+// are string literals by definition — even if they collide with SQL keywords
+// (e.g. "user", "true", "false", "null").
+func ShouldQuoteDefaultValueForType(value, dataType string) bool {
+	if strings.HasPrefix(strings.ToLower(dataType), "enum") {
+		return true
+	}
+	return ShouldQuoteDefaultValue(value)
+}
+
 // FormatDefaultValue returns the default value formatted for use in a SQL DDL
 // statement, quoting it as a string literal only when appropriate.
 func FormatDefaultValue(value string) string {
 	if ShouldQuoteDefaultValue(value) {
+		return "'" + value + "'"
+	}
+	return value
+}
+
+// FormatDefaultValueForType is like FormatDefaultValue but takes the column
+// data type into account so that enum member defaults are always quoted.
+func FormatDefaultValueForType(value, dataType string) string {
+	if ShouldQuoteDefaultValueForType(value, dataType) {
 		return "'" + value + "'"
 	}
 	return value
