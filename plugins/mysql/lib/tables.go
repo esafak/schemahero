@@ -109,12 +109,13 @@ func (m *MysqlConnection) ListTableForeignKeys(databaseName string, tableName st
 	kcu.COLUMN_NAME, kcu.CONSTRAINT_NAME, kcu.REFERENCED_TABLE_NAME, kcu.REFERENCED_COLUMN_NAME, rc.DELETE_RULE
 	from information_schema.KEY_COLUMN_USAGE kcu
 	inner join information_schema.TABLE_CONSTRAINTS tc
-  	  on tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+   	  on tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
 	inner join information_schema.REFERENTIAL_CONSTRAINTS rc
 	  on rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
 	where tc.CONSTRAINT_TYPE = 'FOREIGN KEY'
 	and kcu.TABLE_NAME = ?
-	and kcu.CONSTRAINT_SCHEMA = ?`
+	and kcu.CONSTRAINT_SCHEMA = ?
+	order by kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION`
 
 	rows, err := m.db.Query(query, tableName, databaseName)
 	if err != nil {

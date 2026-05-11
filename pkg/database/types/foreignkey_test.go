@@ -202,6 +202,43 @@ func TestAppendForeignKeyRow(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "aggregates multiple constraints independently",
+			rows: []ForeignKey{
+				{
+					Name:          "fk_orders_customer",
+					ChildColumns:  []string{"customer_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"id"},
+				},
+				{
+					Name:          "fk_orders_region",
+					ChildColumns:  []string{"region_id"},
+					ParentTable:   "regions",
+					ParentColumns: []string{"id"},
+				},
+				{
+					Name:          "fk_orders_customer",
+					ChildColumns:  []string{"account_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"account_id"},
+				},
+			},
+			expected: []*ForeignKey{
+				{
+					Name:          "fk_orders_customer",
+					ChildColumns:  []string{"customer_id", "account_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"id", "account_id"},
+				},
+				{
+					Name:          "fk_orders_region",
+					ChildColumns:  []string{"region_id"},
+					ParentTable:   "regions",
+					ParentColumns: []string{"id"},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
