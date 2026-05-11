@@ -151,13 +151,14 @@ func (p *PostgresConnection) ListTableForeignKeys(databaseName string, tableName
 	att2.attname as "child_column",
 	cl.relname as "parent_table",
 	att.attname as "parent_column",
-  	rc.delete_rule,
+   	rc.delete_rule,
 	conname,
 	ns2.nspname as "parent_schema"
     from
        (select
-	    unnest(con1.conkey) as "parent",
-	    unnest(con1.confkey) as "child",
+	    con1.conkey[col.idx] as "parent",
+	    con1.confkey[col.idx] as "child",
+	    col.idx as "column_ordinal",
 	    con1.confrelid,
 	    con1.conrelid,
 	    con1.conname
@@ -165,6 +166,7 @@ func (p *PostgresConnection) ListTableForeignKeys(databaseName string, tableName
 	    pg_class cl
 	    join pg_namespace ns on cl.relnamespace = ns.oid
 	    join pg_constraint con1 on con1.conrelid = cl.oid
+	    join generate_subscripts(con1.conkey, 1) as col(idx) on true
 	where
 	    cl.relname = $1
 	    and ns.nspname = $2
@@ -179,7 +181,8 @@ func (p *PostgresConnection) ListTableForeignKeys(databaseName string, tableName
        join pg_attribute att2 on
 	   att2.attrelid = con.conrelid and att2.attnum = con.parent
        join information_schema.referential_constraints rc on
-       rc.constraint_name = conname`
+	       rc.constraint_name = conname
+	order by con.conname, con.column_ordinal`
 
 	rows, err := p.conn.Query(context.Background(), query, actualTableName, schema)
 	if err != nil {
