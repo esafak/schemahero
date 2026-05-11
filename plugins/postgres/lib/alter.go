@@ -57,11 +57,10 @@ func AlterColumnStatements(tableName string, primaryKeys []string, desiredColumn
 
 					// update existing values
 					if column.ColumnDefault != nil {
-						defaultValue := types.FormatDefaultValue(*column.ColumnDefault)
 						localStatement := fmt.Sprintf("update %s set %s=%s where %s is null",
 							pgx.Identifier{tableName}.Sanitize(),
 							pgx.Identifier{existingColumn.Name}.Sanitize(),
-							defaultValue,
+							types.FormatDefaultValue(*column.ColumnDefault),
 							pgx.Identifier{existingColumn.Name}.Sanitize())
 						statements = append(statements, localStatement)
 					}

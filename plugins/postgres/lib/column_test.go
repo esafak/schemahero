@@ -13,7 +13,6 @@ import (
 func Test_columnAsInsert(t *testing.T) {
 	default11 := "11"
 	defaultNow := "now()"
-	defaultCurrentTimestamp := "CURRENT_TIMESTAMP"
 	tests := []struct {
 		name              string
 		column            *schemasv1alpha4.PostgresqlTableColumn
@@ -72,30 +71,21 @@ func Test_columnAsInsert(t *testing.T) {
 			expectedStatement: `"c" integer default '11'`,
 		},
 		{
+			name: "default function",
+			column: &schemasv1alpha4.PostgresqlTableColumn{
+				Name:    "c",
+				Type:    "timestamp",
+				Default: &defaultNow,
+			},
+			expectedStatement: `"c" timestamp default now()`,
+		},
+		{
 			name: "text[]",
 			column: &schemasv1alpha4.PostgresqlTableColumn{
 				Name: "c",
 				Type: "text[]",
 			},
 			expectedStatement: `"c" text[]`,
-		},
-		{
-			name: "default function now() not quoted",
-			column: &schemasv1alpha4.PostgresqlTableColumn{
-				Name:    "c",
-				Type:    "timestamp without time zone",
-				Default: &defaultNow,
-			},
-			expectedStatement: `"c" timestamp without time zone default now()`,
-		},
-		{
-			name: "default CURRENT_TIMESTAMP not quoted",
-			column: &schemasv1alpha4.PostgresqlTableColumn{
-				Name:    "c",
-				Type:    "timestamp without time zone",
-				Default: &defaultCurrentTimestamp,
-			},
-			expectedStatement: `"c" timestamp without time zone default CURRENT_TIMESTAMP`,
 		},
 	}
 

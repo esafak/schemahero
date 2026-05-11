@@ -81,11 +81,7 @@ func (s AlterModifyColumnStatement) ddl(useConstraintsFromExistingColumn bool) [
 	}
 
 	if s.Column.ColumnDefault != nil {
-		if types.ShouldQuoteDefaultValueForType(*s.Column.ColumnDefault, s.Column.DataType) {
-			stmts = append(stmts, fmt.Sprintf("default \"%s\"", *s.Column.ColumnDefault))
-		} else {
-			stmts = append(stmts, fmt.Sprintf("default %s", *s.Column.ColumnDefault))
-		}
+		stmts = append(stmts, fmt.Sprintf("default %s", types.FormatDefaultValueForType(s.Column.DataType, *s.Column.ColumnDefault)))
 	}
 
 	return []string{strings.Join(stmts, " ")}
@@ -107,22 +103,12 @@ func (s AlterModifyColumnStatement) ddlWithNotNull() []string {
 
 	// update existing values
 	if s.Column.ColumnDefault != nil {
-		defaultValue := *s.Column.ColumnDefault
-		if types.ShouldQuoteDefaultValueForType(defaultValue, s.Column.DataType) {
-			localStatement := fmt.Sprintf("update `%s` set `%s`=\"%s\" where `%s` is null",
-				s.TableName,
-				s.Column.Name,
-				defaultValue,
-				s.Column.Name)
-			statements = append(statements, localStatement)
-		} else {
-			localStatement := fmt.Sprintf("update `%s` set `%s`=%s where `%s` is null",
-				s.TableName,
-				s.Column.Name,
-				defaultValue,
-				s.Column.Name)
-			statements = append(statements, localStatement)
-		}
+		localStatement := fmt.Sprintf("update `%s` set `%s`=%s where `%s` is null",
+			s.TableName,
+			s.Column.Name,
+			types.FormatDefaultValueForType(s.Column.DataType, *s.Column.ColumnDefault),
+			s.Column.Name)
+		statements = append(statements, localStatement)
 	}
 
 	// update including the not null

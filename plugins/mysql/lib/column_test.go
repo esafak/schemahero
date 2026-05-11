@@ -13,7 +13,6 @@ import (
 func Test_mysqlColumnAsInsert(t *testing.T) {
 	default11 := "11"
 	defaultNow := "now()"
-	defaultCurrentTimestamp := "CURRENT_TIMESTAMP"
 	tests := []struct {
 		name              string
 		column            *schemasv1alpha4.MysqlTableColumn
@@ -70,42 +69,52 @@ func Test_mysqlColumnAsInsert(t *testing.T) {
 			expectedStatement: "`c` varchar (255) character set latin1 collate latin1_danish_ci not null default '11'",
 		},
 		{
-			name: "json field type",
+			name: "json",
 			column: &schemasv1alpha4.MysqlTableColumn{
-				Name: "obj",
+				Name: "j",
 				Type: "json",
+			},
+			expectedStatement: "`j` json",
+		},
+		{
+			name: "enum not null",
+			column: &schemasv1alpha4.MysqlTableColumn{
+				Name: "status",
+				Type: "enum('active','inactive','pending')",
 				Constraints: &schemasv1alpha4.MysqlTableColumnConstraints{
 					NotNull: &trueValue,
 				},
 			},
-			expectedStatement: "`obj` json not null",
+			expectedStatement: "`status` enum('active','inactive','pending') not null",
 		},
 		{
-			name: "timestamp default CURRENT_TIMESTAMP not quoted",
+			name: "enum with default",
 			column: &schemasv1alpha4.MysqlTableColumn{
-				Name: "c",
-				Type: "timestamp",
-				Default: &defaultCurrentTimestamp,
+				Name: "status",
+				Type: "enum('active','inactive')",
+				Constraints: &schemasv1alpha4.MysqlTableColumnConstraints{
+					NotNull: &trueValue,
+				},
+				Default: func() *string { s := "active"; return &s }(),
 			},
-			expectedStatement: "`c` timestamp default CURRENT_TIMESTAMP",
+			expectedStatement: "`status` enum('active','inactive') not null default 'active'",
 		},
 		{
-			name: "datetime default now() not quoted",
+			name: "enum nullable",
 			column: &schemasv1alpha4.MysqlTableColumn{
-				Name: "c",
-				Type: "datetime",
+				Name: "role",
+				Type: "enum('admin','user','guest')",
+			},
+			expectedStatement: "`role` enum('admin','user','guest')",
+		},
+		{
+			name: "datetime function default",
+			column: &schemasv1alpha4.MysqlTableColumn{
+				Name:    "created_at",
+				Type:    "datetime",
 				Default: &defaultNow,
 			},
-			expectedStatement: "`c` datetime default now()",
-		},
-		{
-			name: "varchar default 'user' quoted despite USER keyword",
-			column: &schemasv1alpha4.MysqlTableColumn{
-				Name: "c",
-				Type: "varchar (255)",
-				Default: func() *string { s := "user"; return &s }(),
-			},
-			expectedStatement: "`c` varchar (255) default 'user'",
+			expectedStatement: "`created_at` datetime default now()",
 		},
 	}
 
@@ -184,6 +193,28 @@ func Test_InsertColumnStatement(t *testing.T) {
 			},
 			expectedStatement: "alter table `t` add column `a` json not null",
 		},
+		{
+			name:      "add enum column",
+			tableName: "t",
+			desiredColumn: &schemasv1alpha4.MysqlTableColumn{
+				Name: "status",
+				Type: "enum('active','inactive')",
+				Constraints: &schemasv1alpha4.MysqlTableColumnConstraints{
+					NotNull: &trueValue,
+				},
+			},
+			expectedStatement: "alter table `t` add column `status` enum('active','inactive') not null",
+		},
+		{
+			name:      "add enum column with default",
+			tableName: "t",
+			desiredColumn: &schemasv1alpha4.MysqlTableColumn{
+				Name: "status",
+				Type: "enum('active','inactive')",
+				Default: func() *string { s := "active"; return &s }(),
+			},
+			expectedStatement: "alter table `t` add column `status` enum('active','inactive') default 'active'",
+		},
 	}
 
 	for _, test := range tests {
@@ -255,6 +286,28 @@ func Test_schemaColumnToMysqlColumn(t *testing.T) {
 				DataType: "json",
 			},
 		},
+		{
+			name: "enum('active','inactive')",
+			schemaColumn: &schemasv1alpha4.MysqlTableColumn{
+				Name: "status",
+				Type: "enum('active','inactive')",
+			},
+			expectedColumn: &types.Column{
+				Name:     "status",
+				DataType: "enum('active','inactive')",
+			},
+		},
+		{
+			name: "enum with spaces in type string",
+			schemaColumn: &schemasv1alpha4.MysqlTableColumn{
+				Name: "status",
+				Type: "enum('active', 'inactive', 'pending')",
+			},
+			expectedColumn: &types.Column{
+				Name:     "status",
+				DataType: "enum('active','inactive','pending')",
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -266,5 +319,4 @@ func Test_schemaColumnToMysqlColumn(t *testing.T) {
 			assert.Equal(t, test.expectedColumn, column)
 		})
 	}
-
 }

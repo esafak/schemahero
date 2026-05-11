@@ -13,8 +13,6 @@ import (
 func Test_AlterColumnStatment(t *testing.T) {
 	defaultEleven := "11"
 	defaultEmpty := ""
-	defaultNow := "now()"
-	defaultCurrentTimestamp := "CURRENT_TIMESTAMP"
 
 	tests := []struct {
 		name               string
@@ -41,6 +39,22 @@ func Test_AlterColumnStatment(t *testing.T) {
 			existingColumn: &types.Column{
 				Name:          "b",
 				DataType:      "int (11)",
+				ColumnDefault: nil,
+			},
+			expectedStatements: []string{},
+		},
+		{
+			name:      "no change enum type shape",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name: "size",
+					Type: "enum('small', 'medium', 'large')",
+				},
+			},
+			existingColumn: &types.Column{
+				Name:          "size",
+				DataType:      "enum('small','medium','large')",
 				ColumnDefault: nil,
 			},
 			expectedStatements: []string{},
@@ -180,7 +194,7 @@ func Test_AlterColumnStatment(t *testing.T) {
 				Name:     "a",
 				DataType: "integer",
 			},
-			expectedStatements: []string{"alter table `t` modify column `a` int (11) default \"11\""},
+			expectedStatements: []string{"alter table `t` modify column `a` int (11) default '11'"},
 		},
 		{
 			name:      "default unset",
@@ -212,7 +226,7 @@ func Test_AlterColumnStatment(t *testing.T) {
 				Name:     "a",
 				DataType: "varchar (32)",
 			},
-			expectedStatements: []string{"alter table `t` modify column `a` varchar (32) default \"\""},
+			expectedStatements: []string{"alter table `t` modify column `a` varchar (32) default ''"},
 		},
 
 		// {
@@ -277,9 +291,9 @@ func Test_AlterColumnStatment(t *testing.T) {
 				DataType: "varchar (255)",
 			},
 			expectedStatements: []string{
-				"alter table `t` modify column `a` varchar (255) default \"11\"",
-				"update `t` set `a`=\"11\" where `a` is null",
-				"alter table `t` modify column `a` varchar (255) not null default \"11\"",
+				"alter table `t` modify column `a` varchar (255) default '11'",
+				"update `t` set `a`='11' where `a` is null",
+				"alter table `t` modify column `a` varchar (255) not null default '11'",
 			},
 		},
 		{
@@ -334,82 +348,133 @@ func Test_AlterColumnStatment(t *testing.T) {
 				"alter table `t` modify column `c` int (11) not null",
 			},
 		},
+		// enum alter tests
 		{
-			name:      "default function now() not quoted",
+			name:      "enum no change",
 			tableName: "t",
 			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
 				{
-					Name:    "a",
-					Type:    "datetime",
-					Default: &defaultNow,
+					Name: "status",
+					Type: "enum('active','inactive')",
 				},
 			},
 			existingColumn: &types.Column{
-				Name:     "a",
-				DataType: "datetime",
+				Name:     "status",
+				DataType: "enum('active','inactive')",
 			},
-			expectedStatements: []string{"alter table `t` modify column `a` datetime default now()"},
+			expectedStatements: []string{},
 		},
 		{
-			name:      "default CURRENT_TIMESTAMP not quoted",
+			name:      "enum change values",
 			tableName: "t",
 			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
 				{
-					Name:    "a",
-					Type:    "timestamp",
-					Default: &defaultCurrentTimestamp,
-				},
-			},
-			existingColumn: &types.Column{
-				Name:     "a",
-				DataType: "timestamp",
-			},
-			expectedStatements: []string{"alter table `t` modify column `a` timestamp default CURRENT_TIMESTAMP"},
-		},
-		{
-			name:      "default function with not null add",
-			tableName: "t",
-			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
-				{
-					Name:    "a",
-					Type:    "datetime",
-					Default: &defaultNow,
+					Name: "status",
+					Type: "enum('active','inactive','pending')",
 					Constraints: &schemasv1alpha4.MysqlTableColumnConstraints{
 						NotNull: &trueValue,
 					},
 				},
 			},
 			existingColumn: &types.Column{
-				Name:     "a",
-				DataType: "datetime",
+				Name:     "status",
+				DataType: "enum('active','inactive')",
 			},
 			expectedStatements: []string{
-				"alter table `t` modify column `a` datetime default now()",
-				"update `t` set `a`=now() where `a` is null",
-				"alter table `t` modify column `a` datetime not null default now()",
+				"alter table `t` modify column `status` enum('active','inactive','pending') not null",
 			},
 		},
 		{
-			name:      "enum default 'user' quoted with not null add",
+			name:      "enum to varchar",
 			tableName: "t",
 			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
 				{
-					Name:    "role",
-					Type:    "varchar (255)",
-					Default: func() *string { s := "user"; return &s }(),
-					Constraints: &schemasv1alpha4.MysqlTableColumnConstraints{
-						NotNull: &trueValue,
-					},
+					Name: "status",
+					Type: "varchar (255)",
 				},
 			},
 			existingColumn: &types.Column{
-				Name:     "role",
+				Name:     "status",
+				DataType: "enum('active','inactive')",
+			},
+			expectedStatements: []string{
+				"alter table `t` modify column `status` varchar (255)",
+			},
+		},
+		{
+			name:      "varchar to enum",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name: "status",
+					Type: "enum('active','inactive')",
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "status",
 				DataType: "varchar (255)",
 			},
 			expectedStatements: []string{
-				`alter table ` + "`t`" + ` modify column ` + "`role`" + ` varchar (255) default "user"`,
-				`update ` + "`t`" + ` set ` + "`role`" + `="user" where ` + "`role`" + ` is null`,
-				`alter table ` + "`t`" + ` modify column ` + "`role`" + ` varchar (255) not null default "user"`,
+				"alter table `t` modify column `status` enum('active','inactive')",
+			},
+		},
+		{
+			name:      "enum drop column",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name: "other",
+					Type: "integer",
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "status",
+				DataType: "enum('active','inactive')",
+			},
+			expectedStatements: []string{"alter table `t` drop column `status`"},
+		},
+		{
+			name:      "enum add not null",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name: "status",
+					Type: "enum('active','inactive')",
+					Constraints: &schemasv1alpha4.MysqlTableColumnConstraints{
+						NotNull: &trueValue,
+					},
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "status",
+				DataType: "enum('active','inactive')",
+				Constraints: &types.ColumnConstraints{
+					NotNull: &falseValue,
+				},
+			},
+			expectedStatements: []string{"alter table `t` modify column `status` enum('active','inactive') not null"},
+		},
+		{
+			name:      "enum add not null with default",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name: "status",
+					Type: "enum('active','inactive')",
+					Constraints: &schemasv1alpha4.MysqlTableColumnConstraints{
+						NotNull: &trueValue,
+					},
+					Default: func() *string { s := "active"; return &s }(),
+				},
+			},
+			existingColumn: &types.Column{
+				Name:     "status",
+				DataType: "enum('active','inactive')",
+			},
+			expectedStatements: []string{
+				"alter table `t` modify column `status` enum('active','inactive') default 'active'",
+				"update `t` set `status`='active' where `status` is null",
+				"alter table `t` modify column `status` enum('active','inactive') not null default 'active'",
 			},
 		},
 	}

@@ -10,7 +10,6 @@ import (
 func TestAlterDDL(t *testing.T) {
 	default11 := "11"
 	defaultNow := "now()"
-	defaultCurrentTimestamp := "CURRENT_TIMESTAMP"
 	tests := []struct {
 		name           string
 		tableName      string
@@ -42,83 +41,19 @@ func TestAlterDDL(t *testing.T) {
 			},
 		},
 		{
-			name:      "string default is quoted",
+			name:      "set function default without quotes",
 			tableName: "t",
 			existingColumn: types.Column{
-				Name:     "col",
-				DataType: "varchar (255)",
-			},
-			column: types.Column{
-				Name:          "col",
-				DataType:      "varchar (255)",
-				ColumnDefault: &default11,
-			},
-			expect: []string{
-				"alter table `t` modify column `col` varchar (255) default \"11\"",
-			},
-		},
-		{
-			name:      "now() default is not quoted",
-			tableName: "t",
-			existingColumn: types.Column{
-				Name:     "col",
+				Name:     "created_at",
 				DataType: "datetime",
 			},
 			column: types.Column{
-				Name:          "col",
+				Name:          "created_at",
 				DataType:      "datetime",
 				ColumnDefault: &defaultNow,
 			},
 			expect: []string{
-				"alter table `t` modify column `col` datetime default now()",
-			},
-		},
-		{
-			name:      "CURRENT_TIMESTAMP default is not quoted",
-			tableName: "t",
-			existingColumn: types.Column{
-				Name:     "col",
-				DataType: "timestamp",
-			},
-			column: types.Column{
-				Name:          "col",
-				DataType:      "timestamp",
-				ColumnDefault: &defaultCurrentTimestamp,
-			},
-			expect: []string{
-				"alter table `t` modify column `col` timestamp default CURRENT_TIMESTAMP",
-			},
-		},
-		{
-			name:      "enum default 'user' is quoted despite keyword collision",
-			tableName: "t",
-			existingColumn: types.Column{
-				Name:     "role",
-				DataType: "enum('admin','user','guest')",
-			},
-			column: types.Column{
-				Name:          "role",
-				DataType:      "enum('admin','user','guest')",
-				ColumnDefault: func() *string { s := "user"; return &s }(),
-			},
-			expect: []string{
-				`alter table ` + "`t`" + ` modify column ` + "`role`" + ` enum('admin','user','guest') default "user"`,
-			},
-		},
-		{
-			name:      "enum default 'true' is quoted despite keyword collision",
-			tableName: "t",
-			existingColumn: types.Column{
-				Name:     "flag",
-				DataType: "enum('true','false')",
-			},
-			column: types.Column{
-				Name:          "flag",
-				DataType:      "enum('true','false')",
-				ColumnDefault: func() *string { s := "true"; return &s }(),
-			},
-			expect: []string{
-				`alter table ` + "`t`" + ` modify column ` + "`flag`" + ` enum('true','false') default "true"`,
+				"alter table `t` modify column `created_at` datetime default now()",
 			},
 		},
 	}

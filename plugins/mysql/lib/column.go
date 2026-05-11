@@ -84,11 +84,7 @@ func mysqlColumnAsInsert(column *schemasv1alpha4.MysqlTableColumn) (string, erro
 	}
 
 	if mysqlColumn.ColumnDefault != nil {
-		if types.ShouldQuoteDefaultValueForType(*mysqlColumn.ColumnDefault, mysqlColumn.DataType) {
-			formatted = fmt.Sprintf("%s default '%s'", formatted, *mysqlColumn.ColumnDefault)
-		} else {
-			formatted = fmt.Sprintf("%s default %s", formatted, *mysqlColumn.ColumnDefault)
-		}
+		formatted = fmt.Sprintf("%s default %s", formatted, types.FormatDefaultValueForType(mysqlColumn.DataType, *mysqlColumn.ColumnDefault))
 	}
 
 	return formatted, nil

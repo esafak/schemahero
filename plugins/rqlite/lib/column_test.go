@@ -12,6 +12,7 @@ import (
 
 func Test_columnAsInsert(t *testing.T) {
 	default11 := "11"
+	defaultNow := "now()"
 	tests := []struct {
 		name              string
 		column            *schemasv1alpha4.RqliteTableColumn
@@ -52,6 +53,15 @@ func Test_columnAsInsert(t *testing.T) {
 				Default: &default11,
 			},
 			expectedStatement: `"c" integer default '11'`,
+		},
+		{
+			name: "function default",
+			column: &schemasv1alpha4.RqliteTableColumn{
+				Name:    "c",
+				Type:    "text",
+				Default: &defaultNow,
+			},
+			expectedStatement: `"c" text default now()`,
 		},
 	}
 

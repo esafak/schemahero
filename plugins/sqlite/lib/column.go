@@ -54,11 +54,7 @@ func sqliteColumnAsInsert(column *schemasv1alpha4.SqliteTableColumn) (string, er
 	}
 
 	if sqliteColumn.ColumnDefault != nil {
-		if types.ShouldQuoteDefaultValue(*sqliteColumn.ColumnDefault) {
-			formatted = fmt.Sprintf("%s default '%s'", formatted, *sqliteColumn.ColumnDefault)
-		} else {
-			formatted = fmt.Sprintf("%s default %s", formatted, *sqliteColumn.ColumnDefault)
-		}
+		formatted = fmt.Sprintf("%s default %s", formatted, types.FormatDefaultValue(*sqliteColumn.ColumnDefault))
 	}
 
 	return formatted, nil
