@@ -1,0 +1,13 @@
+plugins/mysql/lib/alter_test.go
+  s_1d5b8383a6d009::t_418d828acf0acc 47-61,349-477
+plugins/mysql/lib/parameterized.go
+  s_1d5b8383a6d009::t_4f8861575201d5 310-318,323-356
+plugins/mysql/lib/parameterized_test.go
+  s_1d5b8383a6d009::t_21268056e7d6e1 24-32,205-247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "12e3836f4fd72ed2e8a33b1567c149cc4300bbbf",
+  "prompts": {}
+}
