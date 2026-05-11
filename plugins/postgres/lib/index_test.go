@@ -101,6 +101,17 @@ func Test_AddIndexStatement(t *testing.T) {
 			},
 			expectedStatement: `create unique index idx_t2_c1 on t2 (c1) with (fillfactor = 90)`,
 		},
+		{
+			name:      "gin index with type",
+			tableName: "t2",
+			schemaIndex: &schemasv1alpha4.PostgresqlTableIndex{
+				Columns: []string{
+					"c1",
+				},
+				Type: "gin",
+			},
+			expectedStatement: `create index idx_t2_c1 on t2 using gin (c1)`,
+		},
 	}
 
 	for _, test := range tests {
