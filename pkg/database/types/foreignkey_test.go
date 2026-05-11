@@ -216,6 +216,36 @@ func TestFindForeignKeyReplacement(t *testing.T) {
 				ParentColumns: []string{"id"},
 			},
 			desiredName: "fk_st_customer_id",
+				expectedReplacement: &ForeignKey{
+					Name:          "fk_st_customer_id",
+					ChildColumns:  []string{"customer_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"legacy_id"},
+				},
+		},
+		{
+			name: "replaces only matching named foreign key when multiple exist",
+			currentForeignKeys: []*ForeignKey{
+				{
+					Name:          "fk_st_customer_id",
+					ChildColumns:  []string{"customer_id"},
+					ParentTable:   "customers",
+					ParentColumns: []string{"legacy_id"},
+				},
+				{
+					Name:          "fk_st_config_id",
+					ChildColumns:  []string{"config_id"},
+					ParentTable:   "configs",
+					ParentColumns: []string{"id"},
+				},
+			},
+			desiredForeignKey: &ForeignKey{
+				Name:          "fk_st_customer_id",
+				ChildColumns:  []string{"customer_id"},
+				ParentTable:   "customers",
+				ParentColumns: []string{"id"},
+			},
+			desiredName: "fk_st_customer_id",
 			expectedReplacement: &ForeignKey{
 				Name:          "fk_st_customer_id",
 				ChildColumns:  []string{"customer_id"},
