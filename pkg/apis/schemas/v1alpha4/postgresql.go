@@ -53,11 +53,12 @@ type PostgresqlTableForeignKey struct {
 }
 
 type PostgresqlTableIndex struct {
-	Columns  []string          `json:"columns" yaml:"columns"`
-	Name     string            `json:"name,omitempty" yaml:"name,omitempty"`
-	IsUnique bool              `json:"isUnique,omitempty" yaml:"isUnique,omitempty"`
-	Type     string            `json:"type,omitempty" yaml:"type,omitempty"`
-	With     map[string]string `json:"with,omitempty" yaml:"with,omitempty"`
+	Columns       []string          `json:"columns" yaml:"columns"`
+	Name          string            `json:"name,omitempty" yaml:"name,omitempty"`
+	IsUnique      bool              `json:"isUnique,omitempty" yaml:"isUnique,omitempty"`
+	Type          string            `json:"type,omitempty" yaml:"type,omitempty"`
+	With          map[string]string `json:"with,omitempty" yaml:"with,omitempty"`
+	OperatorClass string            `json:"operatorClass,omitempty" yaml:"operatorClass,omitempty"`
 }
 
 type PostgresqlTableColumnConstraints struct {

@@ -69,7 +69,7 @@ func Test_AddIndexStatement(t *testing.T) {
 					"fillfactor": "70",
 				},
 			},
-			expectedStatement: `create index idx_t2_c1 on t2 (c1) with (fillfactor = 70)`,
+			expectedStatement: `create index idx_t2_c1 on t2 (c1) with (fillfactor=70)`,
 		},
 		{
 			name:      "with multiple options",
@@ -85,7 +85,7 @@ func Test_AddIndexStatement(t *testing.T) {
 					"gin_pending_list_limit": "64",
 				},
 			},
-			expectedStatement: `create index idx_custom on t2 (c1, c2) with (fillfactor = 80, gin_pending_list_limit = 64)`,
+			expectedStatement: `create index idx_custom on t2 (c1, c2) with (fillfactor=80, gin_pending_list_limit=64)`,
 		},
 		{
 			name:      "unique index with with clause",
@@ -99,7 +99,20 @@ func Test_AddIndexStatement(t *testing.T) {
 					"fillfactor": "90",
 				},
 			},
-			expectedStatement: `create unique index idx_t2_c1 on t2 (c1) with (fillfactor = 90)`,
+			expectedStatement: `create unique index idx_t2_c1 on t2 (c1) with (fillfactor=90)`,
+		},
+		{
+			name:      "gin index with operator class",
+			tableName: "test_reports",
+			schemaIndex: &schemasv1alpha4.PostgresqlTableIndex{
+				Columns: []string{
+					"tests",
+				},
+				Name:          "idx_test_reports_tests",
+				Type:          "gin",
+				OperatorClass: "jsonb_path_ops",
+			},
+			expectedStatement: `create index idx_test_reports_tests on test_reports using gin (tests jsonb_path_ops)`,
 		},
 		{
 			name:      "gin index with type",
