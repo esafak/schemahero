@@ -1,0 +1,16 @@
+pkg/database/types/index.go
+  s_22b4b09244785f::t_2349e981c7ff9c 14,27-30,65
+  s_22b4b09244785f::t_c847e10d345642 106
+plugins/postgres/lib/index.go
+  s_22b4b09244785f::t_4983bfd0ff2df7 40-48
+plugins/postgres/lib/tables.go
+  s_22b4b09244785f::t_81e91e60502c71 131
+plugins/postgres/lib/index_test.go
+  s_22b4b09244785f::t_5044c57a2ce09c 104-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "608f702be18b4884f1e085a1d34a9c1366843fd2",
+  "prompts": {}
+}
