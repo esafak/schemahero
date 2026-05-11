@@ -1,0 +1,23 @@
+plugins/postgres/lib/index.go
+  s_9b8c34bc08f3eb::t_f323e54abeb617 35-44
+plugins/postgres/lib/index_test.go
+  s_9b8c34bc08f3eb::t_8efba268dcd6ef 104-116
+pkg/apis/schemas/v1alpha4/postgresql.go
+  s_9b8c34bc08f3eb::t_45d122850b225c 56-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "460ef6560ecaa85c022fa6741f7743a72e654309",
+  "prompts": {},
+  "sessions": {
+    "s_9b8c34bc08f3eb": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1e6bb3c0dffeMyfel9dchre9F4",
+        "model": "gpt-5.3-codex"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
