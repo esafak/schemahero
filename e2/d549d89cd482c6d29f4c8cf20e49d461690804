@@ -1,0 +1,31 @@
+pkg/database/types/foreignkey.go
+  2db465e91fbebd57 81-84,86,89-114
+plugins/postgres/lib/tables.go
+  s_145d9c0dead12a::t_f58d7ce38666ba 154,159-161,169,184-185
+  2db465e91fbebd57 214
+pkg/database/types/foreignkey_test.go
+  2db465e91fbebd57 149-153,157-172,175-189,192,208-221,225-255,260-284,324-336
+  s_145d9c0dead12a::t_181474348dcb46 193-207,256-259,285-323
+plugins/mysql/lib/tables.go
+  2db465e91fbebd57 142
+  s_145d9c0dead12a::t_eacb2c61c8a5ca 112,117-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "e2d549d89cd482c6d29f4c8cf20e49d461690804",
+  "prompts": {
+    "2db465e91fbebd57": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_25f19cc6bffe2wSX0uCSWu8srW",
+        "model": "openai/gpt-5.4"
+      },
+      "human_author": null,
+      "total_additions": 822,
+      "total_deletions": 763,
+      "accepted_lines": 153,
+      "overriden_lines": 0
+    }
+  }
+}
