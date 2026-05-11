@@ -1,0 +1,36 @@
+config/crds/v1/schemas.schemahero.io_functions.yaml
+  57e6e6a85ef154d8 150-151
+config/crds/v1/schemas.schemahero.io_tables.yaml
+  57e6e6a85ef154d8 1056-1057
+pkg/installer/assets/v1/schemas.schemahero.io_functions.yaml
+  57e6e6a85ef154d8 150-151
+pkg/installer/assets/schemas.schemahero.io_functions.yaml
+  57e6e6a85ef154d8 150-151
+pkg/installer/assets/v1/schemas.schemahero.io_tables.yaml
+  57e6e6a85ef154d8 1021-1022
+pkg/apis/schemas/v1alpha4/function_types.go
+  57e6e6a85ef154d8 62
+pkg/apis/schemas/v1alpha4/table_types.go
+  57e6e6a85ef154d8 66
+pkg/installer/assets/schemas.schemahero.io_tables.yaml
+  57e6e6a85ef154d8 1056-1057
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "2cb6c3d48cb73701f9a99d422706ffbca568bc3a",
+  "prompts": {
+    "57e6e6a85ef154d8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_228d1462cffeEPN0ZFkabDs325",
+        "model": "zai-coding-plan/glm-5.1"
+      },
+      "human_author": "Emre Şafak",
+      "total_additions": 14,
+      "total_deletions": 6,
+      "accepted_lines": 14,
+      "overriden_lines": 0
+    }
+  }
+}

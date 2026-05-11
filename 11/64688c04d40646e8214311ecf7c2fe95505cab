@@ -1,0 +1,54 @@
+plugins/mysql/lib/column_test.go
+  2c07753d255c015b 15-16,111-128,77-81,83-86,88-92,94-95,99-104,106-107,215-222,224-236,308-329,135,137
+  54e524069bd892da 71,76,97-98,195-213,288-305,87,223
+  886ce1e75c7eea52 82,93,105,130-134,136
+pkg/database/types/column_test.go
+  2c07753d255c015b 3-7,81-180,308-352,182,187,190,195-196,201-202,207-208,213-214,219-220,225,227,232-233,238-239,244-245,250-254,256-260,262,267-268,273-274,279-280,285-286,291-292,297-301,303-307
+  886ce1e75c7eea52 181,183-186,188-189,191-194,197-200,203-206,209-212,215-218,221-224,226,228-231,234-237,240-243,246-249,255,261,263-266,269-272,275-278,281-284,287-290,293-296,302
+pkg/database/types/column.go
+  2c07753d255c015b 4-5,9-20,25-27,29-35,49-52,45,47,62-65
+  886ce1e75c7eea52 21-24,28,36-44,46,48,58-61,66
+plugins/mysql/lib/alter_statements_test.go
+  2c07753d255c015b 12-13,44-89
+  886ce1e75c7eea52 92-123
+plugins/mysql/lib/alter_test.go
+  2c07753d255c015b 16-17,337-391
+  54e524069bd892da 335-336
+  886ce1e75c7eea52 392-543
+plugins/mysql/lib/column.go
+  886ce1e75c7eea52 87
+plugins/mysql/lib/alter_statements.go
+  2c07753d255c015b 85-88,110,112-125
+  886ce1e75c7eea52 84,111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "1164688c04d40646e8214311ecf7c2fe95505cab",
+  "prompts": {
+    "2c07753d255c015b": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_22a2025eaffe3zHk29I1h6rYJs",
+        "model": "zai-coding-plan/glm-5.1"
+      },
+      "human_author": "Emre Şafak",
+      "total_additions": 159,
+      "total_deletions": 11,
+      "accepted_lines": 61,
+      "overriden_lines": 0
+    },
+    "886ce1e75c7eea52": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_22899263effeLuDttENLqd28Pd",
+        "model": "zai-coding-plan/glm-5.1"
+      },
+      "human_author": "Emre Şafak",
+      "total_additions": 223,
+      "total_deletions": 7,
+      "accepted_lines": 160,
+      "overriden_lines": 0
+    }
+  }
+}

@@ -1,0 +1,61 @@
+plugins/mysql/lib/create_test.go
+  54e524069bd892da 167-217
+plugins/mysql/lib/parameterized_test.go
+  54e524069bd892da 195-232
+plugins/mysql/lib/tables.go
+  s_145d9c0dead12a::t_eacb2c61c8a5ca 118
+  54e524069bd892da 200,224,226,246-251
+plugins/mysql/lib/parameterized.go
+  54e524069bd892da 310-324
+plugins/mysql/lib/alter_test.go
+  2c07753d255c015b 16-17,337-391
+  54e524069bd892da 335-336
+  886ce1e75c7eea52 392-520
+plugins/mysql/lib/column_test.go
+  2c07753d255c015b 15-16,111-128,77-81,83-86,88-92,94-95,99-104,106-107,206-213,215-227,299-320
+  54e524069bd892da 71,76,97-98,186-204,279-296,87,214
+  886ce1e75c7eea52 82,93,105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "7e8fbc9c98eecebceda6604c4a55e0347014a65f",
+  "prompts": {
+    "2c07753d255c015b": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_22a2025eaffe3zHk29I1h6rYJs",
+        "model": "zai-coding-plan/glm-5.1"
+      },
+      "human_author": "Emre Şafak",
+      "total_additions": 159,
+      "total_deletions": 11,
+      "accepted_lines": 67,
+      "overriden_lines": 0
+    },
+    "54e524069bd892da": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_22f06ce1effebWLwgkw1iWN08A",
+        "model": "zai-coding-plan/glm-5.1"
+      },
+      "human_author": "Emre Şafak",
+      "total_additions": 330,
+      "total_deletions": 17,
+      "accepted_lines": 117,
+      "overriden_lines": 0
+    },
+    "886ce1e75c7eea52": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_22899263effeLuDttENLqd28Pd",
+        "model": "zai-coding-plan/glm-5.1"
+      },
+      "human_author": "Emre Şafak",
+      "total_additions": 223,
+      "total_deletions": 7,
+      "accepted_lines": 132,
+      "overriden_lines": 0
+    }
+  }
+}

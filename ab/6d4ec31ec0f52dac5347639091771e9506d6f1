@@ -1,0 +1,23 @@
+pkg/database/types/foreignkey_test.go
+  2db465e91fbebd57 154-158,162-165,174-179,182-184,193-198,201,251-260,262-266,227-228,245
+  s_145d9c0dead12a::t_181474348dcb46 202-203,212-217,248-250,218,221-222,224-226,229,231-232,234-235,239-244,246-247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "ab6d4ec31ec0f52dac5347639091771e9506d6f1",
+  "prompts": {
+    "2db465e91fbebd57": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_25f19cc6bffe2wSX0uCSWu8srW",
+        "model": "openai/gpt-5.4"
+      },
+      "human_author": null,
+      "total_additions": 822,
+      "total_deletions": 763,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}

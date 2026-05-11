@@ -1,0 +1,14 @@
+pkg/apis/schemas/v1alpha4/postgresql.go
+  s_9b8c34bc08f3eb::t_45d122850b225c 56-61
+plugins/postgres/lib/index_test.go
+  s_9b8c34bc08f3eb::t_8efba268dcd6ef 116-127
+plugins/postgres/lib/index.go
+  s_9b8c34bc08f3eb::t_f323e54abeb617 41-42,44,35-38,40,43
+  s_22b4b09244785f::t_4983bfd0ff2df7 45,39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "37ef0d1b5e7fa4e8f60cc65809df161b8498374e",
+  "prompts": {}
+}
