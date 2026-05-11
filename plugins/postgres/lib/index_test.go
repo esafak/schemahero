@@ -101,6 +101,19 @@ func Test_AddIndexStatement(t *testing.T) {
 			},
 			expectedStatement: `create unique index idx_t2_c1 on t2 (c1) with (fillfactor = 90)`,
 		},
+		{
+			name:      "gin index with operator class",
+			tableName: "test_reports",
+			schemaIndex: &schemasv1alpha4.PostgresqlTableIndex{
+				Columns: []string{
+					"tests",
+				},
+				Name:          "idx_test_reports_tests",
+				Type:          "gin",
+				OperatorClass: "jsonb_path_ops",
+			},
+			expectedStatement: `create index idx_test_reports_tests on test_reports using gin (tests jsonb_path_ops)`,
+		},
 	}
 
 	for _, test := range tests {
