@@ -44,6 +44,22 @@ func Test_AlterColumnStatment(t *testing.T) {
 			expectedStatements: []string{},
 		},
 		{
+			name:      "no change enum type shape",
+			tableName: "t",
+			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{
+				{
+					Name: "size",
+					Type: "enum('small', 'medium', 'large')",
+				},
+			},
+			existingColumn: &types.Column{
+				Name:          "size",
+				DataType:      "enum('small','medium','large')",
+				ColumnDefault: nil,
+			},
+			expectedStatements: []string{},
+		},
+		{
 			name:      "change data type",
 			tableName: "t",
 			desiredColumns: []*schemasv1alpha4.MysqlTableColumn{

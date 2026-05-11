@@ -307,7 +307,51 @@ func maybeParseParameterizedColumnType(requestedType string) (string, error) {
 		}
 	} else if strings.HasPrefix(requestedType, "json") {
 		columnType = "json"
+	} else if strings.HasPrefix(requestedType, "enum") {
+		r := regexp.MustCompile(`enum\s*\((?P<values>.*)\)`)
+
+		matchGroups := r.FindStringSubmatch(requestedType)
+		if len(matchGroups) == 0 {
+			return "", fmt.Errorf("invalid enum definition")
+		}
+
+		columnType = fmt.Sprintf("enum(%s)", normalizeEnumValues(matchGroups[1]))
 	}
 
 	return columnType, nil
+}
+
+func normalizeEnumValues(values string) string {
+	parts := []string{}
+	current := ""
+	inQuote := false
+	escaped := false
+
+	for _, ch := range values {
+		if ch == '\\' && inQuote && !escaped {
+			escaped = true
+			current += string(ch)
+			continue
+		}
+
+		if ch == '\'' && !escaped {
+			inQuote = !inQuote
+		}
+
+		if ch == ',' && !inQuote {
+			parts = append(parts, strings.TrimSpace(current))
+			current = ""
+			escaped = false
+			continue
+		}
+
+		current += string(ch)
+		escaped = false
+	}
+
+	if current != "" {
+		parts = append(parts, strings.TrimSpace(current))
+	}
+
+	return strings.Join(parts, ",")
 }

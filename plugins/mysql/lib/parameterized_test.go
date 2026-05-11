@@ -21,6 +21,16 @@ func Test_maybeParseParameterizedColumnType(t *testing.T) {
 			expectedColumnType: "",
 		},
 		{
+			name:               "enum('small', 'medium', 'large')",
+			requestedType:      "enum('small', 'medium', 'large')",
+			expectedColumnType: "enum('small','medium','large')",
+		},
+		{
+			name:               "enum('small','medium','large')",
+			requestedType:      "enum('small','medium','large')",
+			expectedColumnType: "enum('small','medium','large')",
+		},
+		{
 			name:               "varchar(10)",
 			requestedType:      "varchar(10)",
 			expectedColumnType: "varchar (10)",
