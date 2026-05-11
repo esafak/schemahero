@@ -1,0 +1,26 @@
+plugins/postgres/lib/index.go
+  s_22b4b09244785f::t_4983bfd0ff2df7 41-49
+pkg/database/types/index.go
+  s_22b4b09244785f::t_2349e981c7ff9c 14,27-30,65
+  s_22b4b09244785f::t_c847e10d345642 106
+plugins/postgres/lib/tables.go
+  s_22b4b09244785f::t_81e91e60502c71 131
+plugins/postgres/lib/index_test.go
+  s_22b4b09244785f::t_5044c57a2ce09c 104-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "9771de066d69123a375cd599bf305ed53ce60592",
+  "prompts": {},
+  "sessions": {
+    "s_22b4b09244785f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1e6bd3705ffe6f26cut7hQfgHX",
+        "model": "gpt-5.3-codex"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
