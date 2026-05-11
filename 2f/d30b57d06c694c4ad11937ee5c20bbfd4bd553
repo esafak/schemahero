@@ -1,0 +1,19 @@
+pkg/database/types/foreignkey_test.go
+  s_4196121c266bc8::t_33d9ac26196889 219-247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "2fd30b57d06c694c4ad11937ee5c20bbfd4bd553",
+  "prompts": {},
+  "sessions": {
+    "s_4196121c266bc8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1e6e37bdbffeHiBiAdRzRFDjfL",
+        "model": "gpt-5.3-codex"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
