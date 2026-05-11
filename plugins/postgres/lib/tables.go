@@ -128,6 +128,7 @@ func (p *PostgresConnection) ListTableIndexes(databaseName string, tableName str
 		}
 
 		index.Columns = columns
+		index.Type = method
 		index.With = reloptions
 
 		indexes = append(indexes, &index)

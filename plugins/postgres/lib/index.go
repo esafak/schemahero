@@ -38,6 +38,15 @@ func AddIndexStatement(tableName string, schemaIndex *schemasv1alpha4.Postgresql
 		tableName,
 		strings.Join(schemaIndex.Columns, ", "))
 
+	if schemaIndex.Type != "" {
+		statement = fmt.Sprintf("create %sindex %s on %s using %s (%s)",
+			unique,
+			name,
+			tableName,
+			schemaIndex.Type,
+			strings.Join(schemaIndex.Columns, ", "))
+	}
+
 	if schemaIndex.With != nil && len(schemaIndex.With) > 0 {
 		keys := make([]string, 0, len(schemaIndex.With))
 		for key := range schemaIndex.With {
