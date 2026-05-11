@@ -1,0 +1,23 @@
+plugins/mysql/lib/tables.go
+  s_145d9c0dead12a::t_eacb2c61c8a5ca 112,117-118
+plugins/postgres/lib/tables.go
+  s_145d9c0dead12a::t_f58d7ce38666ba 154,159-161,169,184-185
+pkg/database/types/foreignkey_test.go
+  s_145d9c0dead12a::t_181474348dcb46 205-241
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "9b0db304900f3256469deaf8f0fe4554aa7a00a4",
+  "prompts": {},
+  "sessions": {
+    "s_145d9c0dead12a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1e6df9a53ffeNWkccpIAEhrEAL",
+        "model": "gpt-5.3-codex"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
