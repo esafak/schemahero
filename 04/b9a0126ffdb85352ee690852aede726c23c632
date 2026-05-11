@@ -1,0 +1,19 @@
+plugins/mysql/lib/column_test.go
+  s_1d5b8383a6d009::t_4bf57f19a72983 15,110-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "04b9a0126ffdb85352ee690852aede726c23c632",
+  "prompts": {},
+  "sessions": {
+    "s_1d5b8383a6d009": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1e6d36bd0ffe8W3jAormudOSxK",
+        "model": "gpt-5.3-codex"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
