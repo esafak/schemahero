@@ -1,0 +1,19 @@
+pkg/controller/table/reconcile_table.go
+  s_2950dfbddad58c::t_1378aa30460e68 41-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "2d01133d3d8a3f81d21d6dc7d2f61e787d590ee8",
+  "prompts": {},
+  "sessions": {
+    "s_2950dfbddad58c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_2049bc01cffemTU2qpMnBqdQ5o",
+        "model": "glm-5.1"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
