@@ -1,0 +1,41 @@
+pkg/database/plugin/downloader.go
+  s_c7297fe32f40a8::t_fca929d8a83ee4 227,229-231
+  s_c7297fe32f40a8::t_84b229d64a1060 64-70,75-83
+  s_c7297fe32f40a8::t_305282540d119d 73
+  s_c7297fe32f40a8::t_8354eb0df66d81 162-163,165,174-181,184-199,214-215,218-223
+  s_c7297fe32f40a8::t_16302ab939d1e1 71-72,84-89,91-92,94-95
+  s_c7297fe32f40a8::t_34a5a53b255409 224-225
+  s_c7297fe32f40a8::t_3ae4ec3d51dc66 261
+  s_c7297fe32f40a8::t_064333a9fa4e79 182-183
+scripts/push-dev-images.sh
+  s_c7297fe32f40a8::t_9f82dcf5f6830d 346-347
+  s_c7297fe32f40a8::t_f86274cdd001a3 206-271
+scripts/push-plugins.sh
+  s_c7297fe32f40a8::t_48f4045b165119 210-212,215-221,230-232,241,248,256,259,263,268
+  s_c7297fe32f40a8::t_28a357fc2a185e 4-14,26-27
+  s_c7297fe32f40a8::t_160cab6860583f 204-205,225-228,242-247,249,252-255,257-258,260-262,264-267,269-270,276
+  s_c7297fe32f40a8::t_16f37ebdd69afe 237-239
+  s_c7297fe32f40a8::t_550825f8e7d12b 77-131
+  s_c7297fe32f40a8::t_c8885fd8730303 290
+  s_c7297fe32f40a8::t_1393e1c6a696c9 19
+pkg/database/plugin/downloader_test.go
+  s_c7297fe32f40a8::t_c75a2d1e7d435a 34-122
+  s_c7297fe32f40a8::t_2086d9f69afd73 8
+  s_c7297fe32f40a8::t_bebafc28e34a42 21-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "2b51160186770af2708b25a81e88b41edc10b526",
+  "prompts": {},
+  "sessions": {
+    "s_c7297fe32f40a8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1e6615f20ffe5I4gXUq3l6MSaU",
+        "model": "glm-5.1"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
