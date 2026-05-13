@@ -151,16 +151,17 @@ push_plugin() {
         
         print_info "  Pushing ${platform} artifact..."
         
-        oras push "${oci_repo}:${PLUGIN_VERSION}-${OS}-${ARCH}" \
+        # Push from inside dist/ so ORAS records basenames without the dist/ prefix
+        (cd dist && oras push "${oci_repo}:${PLUGIN_VERSION}-${OS}-${ARCH}" \
           --artifact-type application/vnd.schemahero.plugin.v1+tar \
-          dist/${plugin_binary}-${OS}-${ARCH}.tar.gz:application/gzip \
-          dist/${plugin_binary}-${OS}-${ARCH}.tar.gz.sha256:text/plain \
-          dist/manifest.json:application/json \
+          ${plugin_binary}-${OS}-${ARCH}.tar.gz:application/gzip \
+          ${plugin_binary}-${OS}-${ARCH}.tar.gz.sha256:text/plain \
+          manifest.json:application/json \
           --annotation "org.opencontainers.image.title=${plugin_binary}" \
           --annotation "org.opencontainers.image.version=${PLUGIN_VERSION}" \
           --annotation "org.opencontainers.image.description=SchemaHero ${plugin_name} database plugin" \
           --annotation "org.opencontainers.image.source=https://github.com/schemahero/schemahero" \
-          --annotation "org.opencontainers.image.platform=${platform}"
+          --annotation "org.opencontainers.image.platform=${platform}")
         
         print_info "    ✓ Pushed ${platform}"
     done

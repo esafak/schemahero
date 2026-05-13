@@ -3,8 +3,10 @@ package plugin
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -214,4 +216,113 @@ func TestPluginDownloader_DownloadPlugin_Integration(t *testing.T) {
 	}
 
 	t.Logf("Successfully downloaded and verified plugin at %s", pluginPath)
+}
+
+func TestFindPluginArtifact(t *testing.T) {
+	driver := "mysql"
+
+	t.Run("flat tarball path", func(t *testing.T) {
+		cacheDir := t.TempDir()
+		tarName := fmt.Sprintf("schemahero-%s-%s-%s.tar.gz", driver, runtime.GOOS, runtime.GOARCH)
+		tarPath := filepath.Join(cacheDir, tarName)
+
+		if err := os.WriteFile(tarPath, []byte("fake tarball"), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		found, isArchive, err := findPluginArtifact(cacheDir, driver)
+		if err != nil {
+			t.Fatalf("expected to find artifact, got error: %v", err)
+		}
+		if found != tarPath {
+			t.Errorf("expected %s, got %s", tarPath, found)
+		}
+		if !isArchive {
+			t.Error("expected isArchive=true")
+		}
+	})
+
+	t.Run("dist subdirectory tarball path", func(t *testing.T) {
+		cacheDir := t.TempDir()
+		distDir := filepath.Join(cacheDir, "dist")
+		if err := os.MkdirAll(distDir, 0755); err != nil {
+			t.Fatal(err)
+		}
+
+		tarName := fmt.Sprintf("schemahero-%s-%s-%s.tar.gz", driver, runtime.GOOS, runtime.GOARCH)
+		tarPath := filepath.Join(distDir, tarName)
+		if err := os.WriteFile(tarPath, []byte("fake tarball"), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		found, isArchive, err := findPluginArtifact(cacheDir, driver)
+		if err != nil {
+			t.Fatalf("expected to find artifact under dist/, got error: %v", err)
+		}
+		if found != tarPath {
+			t.Errorf("expected %s, got %s", tarPath, found)
+		}
+		if !isArchive {
+			t.Error("expected isArchive=true")
+		}
+	})
+
+	t.Run("flat path takes precedence over dist path", func(t *testing.T) {
+		cacheDir := t.TempDir()
+
+		// Create both flat and dist/ tarballs
+		tarName := fmt.Sprintf("schemahero-%s-%s-%s.tar.gz", driver, runtime.GOOS, runtime.GOARCH)
+		flatPath := filepath.Join(cacheDir, tarName)
+		if err := os.WriteFile(flatPath, []byte("flat"), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		distDir := filepath.Join(cacheDir, "dist")
+		if err := os.MkdirAll(distDir, 0755); err != nil {
+			t.Fatal(err)
+		}
+		distPath := filepath.Join(distDir, tarName)
+		if err := os.WriteFile(distPath, []byte("dist"), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		found, _, err := findPluginArtifact(cacheDir, driver)
+		if err != nil {
+			t.Fatalf("expected to find artifact, got error: %v", err)
+		}
+		if found != flatPath {
+			t.Errorf("flat path should take precedence: expected %s, got %s", flatPath, found)
+		}
+	})
+
+	t.Run("not found returns error", func(t *testing.T) {
+		cacheDir := t.TempDir()
+
+		_, _, err := findPluginArtifact(cacheDir, driver)
+		if err == nil {
+			t.Fatal("expected error when no artifact is present")
+		}
+		if !strings.Contains(err.Error(), "plugin not found") {
+			t.Errorf("expected 'plugin not found' error, got: %v", err)
+		}
+	})
+
+	t.Run("direct binary fallback", func(t *testing.T) {
+		cacheDir := t.TempDir()
+		binaryPath := filepath.Join(cacheDir, fmt.Sprintf("schemahero-%s", driver))
+		if err := os.WriteFile(binaryPath, []byte("fake binary"), 0755); err != nil {
+			t.Fatal(err)
+		}
+
+		found, isArchive, err := findPluginArtifact(cacheDir, driver)
+		if err != nil {
+			t.Fatalf("expected to find artifact, got error: %v", err)
+		}
+		if found != binaryPath {
+			t.Errorf("expected %s, got %s", binaryPath, found)
+		}
+		if isArchive {
+			t.Error("expected isArchive=false for direct binary")
+		}
+	})
 }

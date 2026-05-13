@@ -178,36 +178,9 @@ func (d *PluginDownloader) downloadPluginOnce(ctx context.Context, driver string
 
 	// ORAS downloads all platform artifacts, so we must check for the correct platform-specific tarball FIRST
 	// before falling back to generic paths
-	possiblePaths := []string{
-		// Look for the OS-specific tarball first (runtime.GOOS and runtime.GOARCH determine the correct platform)
-		filepath.Join(cacheDir, fmt.Sprintf("schemahero-%s-%s-%s.tar.gz", driver, runtime.GOOS, runtime.GOARCH)),
-		// Fallback paths for direct binary (no tarball)
-		filepath.Join(cacheDir, fmt.Sprintf("schemahero-%s", driver)),                   // Direct
-		filepath.Join(cacheDir, "plugins", "bin", fmt.Sprintf("schemahero-%s", driver)), // With structure
-		filepath.Join(cacheDir, "plugins", fmt.Sprintf("schemahero-%s", driver)),        // Partial structure
-	}
-
-	fmt.Fprintf(os.Stderr, "[plugin-downloader] Looking for plugin for OS=%s ARCH=%s\n", runtime.GOOS, runtime.GOARCH)
-	var foundPath string
-	var isArchive bool
-	for _, path := range possiblePaths {
-		fmt.Fprintf(os.Stderr, "[plugin-downloader] Checking path: %s\n", path)
-		if _, err := os.Stat(path); err == nil {
-			foundPath = path
-			isArchive = strings.HasSuffix(path, ".tar.gz")
-			fmt.Fprintf(os.Stderr, "[plugin-downloader] Found plugin at: %s (isArchive=%v)\n", foundPath, isArchive)
-			break
-		}
-	}
-
-	if foundPath == "" {
-		// List what files actually exist in cacheDir for debugging
-		files, _ := os.ReadDir(cacheDir)
-		fmt.Fprintf(os.Stderr, "[plugin-downloader] ERROR: Plugin not found. Files in %s:\n", cacheDir)
-		for _, f := range files {
-			fmt.Fprintf(os.Stderr, "[plugin-downloader]   - %s\n", f.Name())
-		}
-		return fmt.Errorf("plugin not found in any expected location after download")
+	foundPath, isArchive, err := findPluginArtifact(cacheDir, driver)
+	if err != nil {
+		return err
 	}
 
 	var finalPluginPath string
@@ -255,6 +228,41 @@ func newPluginDownloadClient() *auth.Client {
 		},
 		Cache: auth.DefaultCache,
 	}
+}
+
+// findPluginArtifact searches for a downloaded plugin artifact in the cache directory.
+// It checks platform-specific tarball paths (including the dist/ prefix used by older
+// push-scripts), then falls back to direct binary paths.
+// Returns the found path, whether it's a .tar.gz archive, or an error if nothing is found.
+func findPluginArtifact(cacheDir string, driver string) (string, bool, error) {
+	possiblePaths := []string{
+		// Look for the OS-specific tarball first (runtime.GOOS and runtime.GOARCH determine the correct platform)
+		filepath.Join(cacheDir, fmt.Sprintf("schemahero-%s-%s-%s.tar.gz", driver, runtime.GOOS, runtime.GOARCH)),
+		// Also check under dist/ — push-plugins.sh recorded the dist/ prefix in ORAS blob names
+		filepath.Join(cacheDir, "dist", fmt.Sprintf("schemahero-%s-%s-%s.tar.gz", driver, runtime.GOOS, runtime.GOARCH)),
+		// Fallback paths for direct binary (no tarball)
+		filepath.Join(cacheDir, fmt.Sprintf("schemahero-%s", driver)),                   // Direct
+		filepath.Join(cacheDir, "plugins", "bin", fmt.Sprintf("schemahero-%s", driver)), // With structure
+		filepath.Join(cacheDir, "plugins", fmt.Sprintf("schemahero-%s", driver)),        // Partial structure
+	}
+
+	fmt.Fprintf(os.Stderr, "[plugin-downloader] Looking for plugin for OS=%s ARCH=%s\n", runtime.GOOS, runtime.GOARCH)
+	for _, path := range possiblePaths {
+		fmt.Fprintf(os.Stderr, "[plugin-downloader] Checking path: %s\n", path)
+		if _, err := os.Stat(path); err == nil {
+			isArchive := strings.HasSuffix(path, ".tar.gz")
+			fmt.Fprintf(os.Stderr, "[plugin-downloader] Found plugin at: %s (isArchive=%v)\n", path, isArchive)
+			return path, isArchive, nil
+		}
+	}
+
+	// List what files actually exist in cacheDir for debugging
+	files, _ := os.ReadDir(cacheDir)
+	fmt.Fprintf(os.Stderr, "[plugin-downloader] ERROR: Plugin not found. Files in %s:\n", cacheDir)
+	for _, f := range files {
+		fmt.Fprintf(os.Stderr, "[plugin-downloader]   - %s\n", f.Name())
+	}
+	return "", false, fmt.Errorf("plugin not found in any expected location after download")
 }
 
 // extractPlugin extracts a plugin binary from a tar.gz archive
