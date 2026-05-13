@@ -1,0 +1,24 @@
+pkg/database/plugin/downloader.go
+  f5ce3c12dd102d42 58-64,68-72
+pkg/database/plugin/downloader_test.go
+  f5ce3c12dd102d42 8,34-89,92-97,100,102-103,105,107-165,167-169,171-174,275-310
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "3125b4c889f644a2dfb4aa796171f8aeb0ba508e",
+  "prompts": {
+    "f5ce3c12dd102d42": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_226bb3ca7ffeWlYIb921cq6M84",
+        "model": "zai-coding-plan/glm-5.1"
+      },
+      "human_author": null,
+      "total_additions": 79,
+      "total_deletions": 3,
+      "accepted_lines": 181,
+      "overriden_lines": 0
+    }
+  }
+}
