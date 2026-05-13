@@ -1,0 +1,21 @@
+scripts/push-plugins.sh
+  s_f65c655900d07a::t_d2279fe8743dd1 85-86
+pkg/database/plugin/downloader.go
+  s_f65c655900d07a::t_fa5b5d4731c3f7 293-297
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "3b6e16c8f7e2852963448429a3de0355d6cf08db",
+  "prompts": {},
+  "sessions": {
+    "s_f65c655900d07a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dc5b222bffe5oBXZFC0XXvlzT",
+        "model": "glm-5.1"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
