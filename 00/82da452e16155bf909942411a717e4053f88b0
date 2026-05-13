@@ -1,0 +1,19 @@
+scripts/push-dev-images.sh
+  s_ba139d6354296a::t_95b110e08416d6 170-173,175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "0082da452e16155bf909942411a717e4053f88b0",
+  "prompts": {},
+  "sessions": {
+    "s_ba139d6354296a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dc6efc35ffeQoAmiC9GP64gAC",
+        "model": "glm-5.1"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
