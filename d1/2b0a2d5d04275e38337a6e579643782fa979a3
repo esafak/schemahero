@@ -1,0 +1,12 @@
+scripts/push-plugins.sh
+  s_f65c655900d07a::t_d2279fe8743dd1 154-155
+pkg/database/plugin/downloader.go
+  s_f65c655900d07a::t_fa5b5d4731c3f7 75-89,172-188,190-198,273-280,292-294,298-308,348,350-352
+  s_f65c655900d07a::t_21f0a839823618 340-341,343,349,353-354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "d12b0a2d5d04275e38337a6e579643782fa979a3",
+  "prompts": {}
+}
