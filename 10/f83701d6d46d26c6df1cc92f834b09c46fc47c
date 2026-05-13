@@ -1,0 +1,22 @@
+pkg/database/plugin/downloader.go
+  s_f65c655900d07a::t_21f0a839823618 287-288,290,296,300-301
+  s_f65c655900d07a::t_fa5b5d4731c3f7 295,297-299
+scripts/push-plugins.sh
+  s_f65c655900d07a::t_d2279fe8743dd1 85-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "10f83701d6d46d26c6df1cc92f834b09c46fc47c",
+  "prompts": {},
+  "sessions": {
+    "s_f65c655900d07a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dc5b222bffe5oBXZFC0XXvlzT",
+        "model": "glm-5.1"
+      },
+      "human_author": null
+    }
+  }
+}
