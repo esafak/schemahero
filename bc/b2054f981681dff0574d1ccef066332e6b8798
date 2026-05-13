@@ -1,0 +1,19 @@
+pkg/database/plugin/downloader_test.go
+  s_283389926d065f::t_1b4b4f3758f04e 6,309-416
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "bcb2054f981681dff0574d1ccef066332e6b8798",
+  "prompts": {},
+  "sessions": {
+    "s_283389926d065f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dc968386ffe3ibnFCyaB6Ivb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
