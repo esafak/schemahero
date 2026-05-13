@@ -61,18 +61,38 @@ func NewPluginDownloader(cacheDir string) *PluginDownloader {
 	}
 }
 
-// GetPluginArtifactRef returns the ORAS artifact reference for a given driver
-// Maps driver names to Docker Hub artifact references following pattern:
-// schemahero/plugin-{driver}:{major-version}
-// Can be overridden at build time via pluginRegistryOverride
+// GetPluginArtifactRef returns the ORAS artifact reference for a given driver.
+// Both production and dev paths use architecture-specific tags so the correct
+// binary is downloaded for the host platform.
+//
+// Production pattern: docker.io/schemahero/plugin-{driver}:{major-version}-{arch}
+// Dev pattern:        {registry}/plugin-{driver}:{tag}-{arch}
+//
+// The caller supplies majorVersion (from pluginTagOverride or the default "0").
+// For backward compatibility with registries that still host unqualified tags,
+// see downloadPluginOnce.
 func (d *PluginDownloader) GetPluginArtifactRef(driver string, majorVersion string) string {
+	arch := runtime.GOARCH
+
 	if pluginRegistryOverride != "" {
-		// For dev builds, append architecture suffix to get the right binary
-		arch := runtime.GOARCH
-		ref := fmt.Sprintf("%s-%s:%s-%s", pluginRegistryOverride, driver, majorVersion, arch)
-		return ref
+		// Dev / custom registry: {registry}/plugin-{driver}:{tag}-{arch}
+		return fmt.Sprintf("%s/plugin-%s:%s-%s", pluginRegistryOverride, driver, majorVersion, arch)
 	}
-	return fmt.Sprintf("docker.io/schemahero/plugin-%s:0", driver)
+
+	// Production: docker.io/schemahero/plugin-{driver}:{major-version}-{arch}
+	return fmt.Sprintf("docker.io/schemahero/plugin-%s:%s-%s", driver, majorVersion, arch)
+}
+
+// getLegacyPluginArtifactRef returns the pre-multi-arch artifact reference
+// (without architecture suffix) for backward compatibility. Returns empty
+// string when there is no legacy format to fall back to (e.g. dev builds).
+func (d *PluginDownloader) getLegacyPluginArtifactRef(driver string, majorVersion string) string {
+	if pluginRegistryOverride != "" {
+		// Dev builds never had a published legacy format; no fallback.
+		return ""
+	}
+	// Legacy production format: docker.io/schemahero/plugin-{driver}:{major_version}
+	return fmt.Sprintf("docker.io/schemahero/plugin-%s:%s", driver, majorVersion)
 }
 
 // GetCachedPluginPath returns the expected path for a cached plugin binary
@@ -139,13 +159,11 @@ func (d *PluginDownloader) DownloadPlugin(ctx context.Context, driver string, ma
 	return pluginPath, nil
 }
 
-// downloadPluginOnce performs the actual download operation
+// downloadPluginOnce performs the actual download operation with a fallback
+// strategy for backward compatibility with legacy (pre-multi-arch) artifacts.
 func (d *PluginDownloader) downloadPluginOnce(ctx context.Context, driver string, majorVersion string, pluginPath string) error {
+	// Try the new arch-specific ref first; fall back to legacy unqualified tag.
 	artifactRef := d.GetPluginArtifactRef(driver, majorVersion)
-
-	// Extract the tag from the artifact reference (everything after the last :)
-	parts := strings.Split(artifactRef, ":")
-	tag := parts[len(parts)-1]
 
 	// Ensure cache directory exists
 	cacheDir := filepath.Dir(pluginPath)
@@ -153,7 +171,32 @@ func (d *PluginDownloader) downloadPluginOnce(ctx context.Context, driver string
 		return fmt.Errorf("failed to create cache directory %s: %w", cacheDir, err)
 	}
 
-	// Create repository reference (without tag)
+	err := d.downloadFromRef(ctx, artifactRef, cacheDir)
+	if err != nil {
+		// Attempt backward-compatible fallback to legacy tag (no arch suffix).
+		legacyRef := d.getLegacyPluginArtifactRef(driver, majorVersion)
+		if legacyRef != "" && legacyRef != artifactRef {
+			fmt.Fprintf(os.Stderr, "[plugin-downloader] Arch-specific ref failed (%v), trying legacy ref: %s\n", err, legacyRef)
+			legacyErr := d.downloadFromRef(ctx, legacyRef, cacheDir)
+			if legacyErr != nil {
+				return fmt.Errorf("failed to download plugin: arch-specific ref %s (%v); legacy ref %s (%v)",
+					artifactRef, err, legacyRef, legacyErr)
+			}
+			fmt.Fprintf(os.Stderr, "[plugin-downloader] Successfully downloaded from legacy ref: %s\n", legacyRef)
+		} else {
+			return fmt.Errorf("failed to download plugin from %s: %w", artifactRef, err)
+		}
+	}
+
+	// Locate the downloaded plugin binary, extract if needed, and finalize.
+	return d.locateAndFinalizePlugin(cacheDir, driver, pluginPath)
+}
+
+// downloadFromRef downloads an OCI artifact by its full reference string into cacheDir.
+func (d *PluginDownloader) downloadFromRef(ctx context.Context, artifactRef string, cacheDir string) error {
+	parts := strings.Split(artifactRef, ":")
+	tag := parts[len(parts)-1]
+
 	repoURL := strings.TrimSuffix(artifactRef, ":"+tag)
 	repo, err := remote.NewRepository(repoURL)
 	if err != nil {
@@ -161,27 +204,31 @@ func (d *PluginDownloader) downloadPluginOnce(ctx context.Context, driver string
 	}
 	repo.Client = newPluginDownloadClient()
 
-	// Use file store with higher size limit (100MB) for plugin artifacts
 	fs, err := file.NewWithFallbackLimit(cacheDir, 100*1024*1024) // 100MB limit
 	if err != nil {
 		return fmt.Errorf("failed to create file store: %w", err)
 	}
 	defer fs.Close()
 
-	// Use default copy options for custom OCI artifacts
 	copyOpts := oras.CopyOptions{}
-
-	_, err = oras.Copy(ctx, repo, tag, fs, tag, copyOpts)
-	if err != nil {
-		return fmt.Errorf("failed to download plugin from %s (repo: %s, tag: %s): %w", artifactRef, repoURL, tag, err)
+	if _, err := oras.Copy(ctx, repo, tag, fs, tag, copyOpts); err != nil {
+		return fmt.Errorf("oras copy failed for %s: %w", artifactRef, err)
 	}
 
-	// ORAS downloads all platform artifacts, so we must check for the correct platform-specific tarball FIRST
-	// before falling back to generic paths
+	return nil
+}
+
+// locateAndFinalizePlugin finds the downloaded plugin binary in cacheDir,
+// extracts it from an archive if needed, and moves it to pluginPath.
+func (d *PluginDownloader) locateAndFinalizePlugin(cacheDir string, driver string, pluginPath string) error {
+	// ORAS downloads all platform artifacts, so we must check for the correct
+	// platform-specific tarball FIRST before falling back to generic paths.
 	possiblePaths := []string{
-		// Look for the OS-specific tarball first (runtime.GOOS and runtime.GOARCH determine the correct platform)
+		// Look for the OS-specific tarball first (from push-plugins.sh: schemahero-{driver}-{os}-{arch}.tar.gz)
 		filepath.Join(cacheDir, fmt.Sprintf("schemahero-%s-%s-%s.tar.gz", driver, runtime.GOOS, runtime.GOARCH)),
-		// Fallback paths for direct binary (no tarball)
+		// Arch-only binary (from push-dev-images.sh: schemahero-{driver}-{arch})
+		filepath.Join(cacheDir, fmt.Sprintf("schemahero-%s-%s", driver, runtime.GOARCH)),
+		// Fallback paths for generic / legacy binary names
 		filepath.Join(cacheDir, fmt.Sprintf("schemahero-%s", driver)),                   // Direct
 		filepath.Join(cacheDir, "plugins", "bin", fmt.Sprintf("schemahero-%s", driver)), // With structure
 		filepath.Join(cacheDir, "plugins", fmt.Sprintf("schemahero-%s", driver)),        // Partial structure
@@ -211,6 +258,7 @@ func (d *PluginDownloader) downloadPluginOnce(ctx context.Context, driver string
 	}
 
 	var finalPluginPath string
+	var err error
 
 	if isArchive {
 		// Extract the tarball
