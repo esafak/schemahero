@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -17,9 +18,9 @@ func TestPluginDownloader_GetPluginArtifactRef(t *testing.T) {
 		majorVersion string
 		expected     string
 	}{
-		{"postgres", "0", "docker.io/schemahero/plugin-postgres:0"},
-		{"mysql", "1", "docker.io/schemahero/plugin-mysql:0"},
-		{"cassandra", "0", "docker.io/schemahero/plugin-cassandra:0"},
+		{"postgres", "0", "docker.io/schemahero/plugin-postgres:0-" + runtime.GOARCH},
+		{"mysql", "1", "docker.io/schemahero/plugin-mysql:1-" + runtime.GOARCH},
+		{"cassandra", "0", "docker.io/schemahero/plugin-cassandra:0-" + runtime.GOARCH},
 	}
 
 	for _, test := range tests {
@@ -27,6 +28,95 @@ func TestPluginDownloader_GetPluginArtifactRef(t *testing.T) {
 		if result != test.expected {
 			t.Errorf("GetPluginArtifactRef(%s, %s) = %s, expected %s", test.driver, test.majorVersion, result, test.expected)
 		}
+	}
+}
+
+func TestPluginDownloader_GetPluginArtifactRef_WithOverride(t *testing.T) {
+	downloader := NewPluginDownloader("")
+
+	// Save and restore the override state
+	origRegistry := pluginRegistryOverride
+	defer func() { pluginRegistryOverride = origRegistry }()
+
+	tests := []struct {
+		name         string
+		override     string
+		driver       string
+		majorVersion string
+		expected     string
+	}{
+		{
+			name:         "ghcr.io dev registry",
+			override:     "ghcr.io/esafak/schemahero",
+			driver:       "mysql",
+			majorVersion: "dev",
+			expected:     "ghcr.io/esafak/schemahero/plugin-mysql:dev-" + runtime.GOARCH,
+		},
+		{
+			name:         "ttl.sh test registry",
+			override:     "ttl.sh/myuser/schemahero",
+			driver:       "postgres",
+			majorVersion: "0",
+			expected:     "ttl.sh/myuser/schemahero/plugin-postgres:0-" + runtime.GOARCH,
+		},
+		{
+			name:         "empty override falls back to production",
+			override:     "",
+			driver:       "postgres",
+			majorVersion: "0",
+			expected:     "docker.io/schemahero/plugin-postgres:0-" + runtime.GOARCH,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			pluginRegistryOverride = test.override
+			result := downloader.GetPluginArtifactRef(test.driver, test.majorVersion)
+			if result != test.expected {
+				t.Errorf("GetPluginArtifactRef(%s, %s) = %s, expected %s", test.driver, test.majorVersion, result, test.expected)
+			}
+		})
+	}
+}
+
+func TestPluginDownloader_GetLegacyPluginArtifactRef(t *testing.T) {
+	downloader := NewPluginDownloader("")
+
+	// Save and restore the override state
+	origRegistry := pluginRegistryOverride
+	defer func() { pluginRegistryOverride = origRegistry }()
+
+	tests := []struct {
+		name         string
+		override     string
+		driver       string
+		majorVersion string
+		expected     string
+	}{
+		{
+			name:         "production returns legacy format without arch",
+			override:     "",
+			driver:       "postgres",
+			majorVersion: "0",
+			expected:     "docker.io/schemahero/plugin-postgres:0",
+		},
+		{
+			name:         "dev override returns empty (no legacy format)",
+			override:     "ghcr.io/esafak/schemahero",
+			driver:       "mysql",
+			majorVersion: "dev",
+			expected:     "",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			pluginRegistryOverride = test.override
+			result := downloader.getLegacyPluginArtifactRef(test.driver, test.majorVersion)
+			if result != test.expected {
+				t.Errorf("getLegacyPluginArtifactRef(%s, %s) = %q, expected %q", test.driver, test.majorVersion, result, test.expected)
+			}
+		})
 	}
 }
 
