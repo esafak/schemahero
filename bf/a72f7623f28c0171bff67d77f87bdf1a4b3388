@@ -1,0 +1,19 @@
+BUGS.md
+  s_1c5052212df5ed::t_7ede7915a4e872 508-539
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "bfa72f7623f28c0171bff67d77f87bdf1a4b3388",
+  "prompts": {},
+  "sessions": {
+    "s_1c5052212df5ed": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dcdcfa7effeSgS1Xgs7CNefTv",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
