@@ -38,7 +38,36 @@ func (r *ReconcileTable) reconcileTable(ctx context.Context, instance *schemasv1
 		return reconcile.Result{}, errors.Wrap(err, "failed to get instance sha")
 	}
 	if instance.Status.LastPlannedTableSpecSHA == currentTableSpecSHA {
-		return reconcile.Result{}, nil
+		// The spec hasn't changed, but the migration for this SHA may have been
+		// deleted (e.g. by a flush). Verify the migration still exists before
+		// skipping reconciliation.
+		migrationName := currentTableSpecSHA[:7]
+		existingMigration := &schemasv1alpha4.Migration{}
+		err := r.Get(ctx, types.NamespacedName{
+			Name:      migrationName,
+			Namespace: instance.Namespace,
+		}, existingMigration)
+
+		if err == nil {
+			// Migration still exists, nothing to do
+			return reconcile.Result{}, nil
+		}
+
+		if !kuberneteserrors.IsNotFound(err) {
+			return reconcile.Result{}, errors.Wrap(err, "failed to check for existing migration")
+		}
+
+		// Migration was deleted — clear the SHA so we re-plan on next reconcile
+		logger.Info("table spec SHA matches but migration was deleted, re-planning",
+			zap.String("tableName", instance.Name),
+			zap.String("migrationName", migrationName))
+
+		instance.Status.LastPlannedTableSpecSHA = ""
+		if err := r.Status().Update(ctx, instance); err != nil {
+			return reconcile.Result{}, errors.Wrap(err, "failed to clear last planned SHA")
+		}
+
+		return reconcile.Result{Requeue: true}, nil
 	}
 
 	// get the full database spec from the api
