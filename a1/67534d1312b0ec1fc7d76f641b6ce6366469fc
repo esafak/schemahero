@@ -1,0 +1,28 @@
+scripts/push-plugins.sh
+  s_f3a16e009b306d::t_f1025551dce737 225-228
+  s_f3a16e009b306d::t_d99d21c3e837cc 230-232
+pkg/database/plugin/downloader_test.go
+  s_f3a16e009b306d::t_78a4b1c18af2f6 417-435
+  s_f3a16e009b306d::t_f11ae3bf789b43 309-416,436
+  s_f3a16e009b306d::t_60f44e59c85ac8 6
+pkg/database/plugin/downloader.go
+  s_f3a16e009b306d::t_da73170d9e5ba1 224-226
+  s_f3a16e009b306d::t_d03117976011a5 286-287
+  s_f3a16e009b306d::t_cddbe62d8d68b0 276-285,288-312
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "a167534d1312b0ec1fc7d76f641b6ce6366469fc",
+  "prompts": {},
+  "sessions": {
+    "s_f3a16e009b306d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dcc3d7f3ffeG2sPrkfCqyhE7f",
+        "model": "glm-5.1"
+      },
+      "human_author": null
+    }
+  }
+}
