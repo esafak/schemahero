@@ -82,8 +82,8 @@ build_plugin() {
         (cd plugins/${plugin_name} && \
          CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH go build -o ../../dist/${plugin_binary}-${OS}-${ARCH} .)
         
-        # Create tarball
-        tar -czf dist/${plugin_binary}-${OS}-${ARCH}.tar.gz -C dist ${plugin_binary}-${OS}-${ARCH}
+        # Create tarball (COPYFILE_DISABLE prevents macOS Apple Double "._" files)
+        COPYFILE_DISABLE=1 tar -czf dist/${plugin_binary}-${OS}-${ARCH}.tar.gz -C dist ${plugin_binary}-${OS}-${ARCH}
         
         # Create checksum
         (cd dist && sha256sum ${plugin_binary}-${OS}-${ARCH}.tar.gz > ${plugin_binary}-${OS}-${ARCH}.tar.gz.sha256)

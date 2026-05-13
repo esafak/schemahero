@@ -284,14 +284,21 @@ func (d *PluginDownloader) extractPlugin(archivePath, extractDir, driver string)
 			return "", fmt.Errorf("failed to read tar entry: %w", err)
 		}
 
+		name := filepath.Base(header.Name)
+
 		// Sanitize the archive entry name to prevent Zip Slip
-		if strings.Contains(header.Name, "..") || strings.Contains(header.Name, "/") || strings.Contains(header.Name, "\\") {
+		if strings.Contains(name, "..") || strings.Contains(header.Name, "/") || strings.Contains(header.Name, "\\") {
 			// Unsafe entry, skip extraction
 			continue
 		}
 
-		// Look for the binary we want
-		if header.Typeflag == tar.TypeReg && strings.Contains(header.Name, expectedBinary) {
+		// Skip macOS Apple Double files (resource fork metadata prefixed with "._")
+		if strings.HasPrefix(name, "._") {
+			continue
+		}
+
+		// Look for the binary we want (exact name or name with platform suffix like "-linux-amd64")
+		if header.Typeflag == tar.TypeReg && (name == expectedBinary || strings.HasPrefix(name, expectedBinary+"-")) {
 			extractPath := filepath.Join(extractDir, filepath.Base(header.Name))
 
 			outFile, err := os.Create(extractPath)
