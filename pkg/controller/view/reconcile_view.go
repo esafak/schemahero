@@ -17,6 +17,7 @@ import (
 	kuberneteserrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -225,31 +226,53 @@ func (r *ReconcileView) plan(ctx context.Context, databaseInstance *databasesv1a
 		migration.Status.Phase = schemasv1alpha4.Planned
 	}
 
+	if err := r.upsertMigrationWithStatus(ctx, viewInstance, &migration); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileView) upsertMigrationWithStatus(ctx context.Context, owner client.Object, migration *schemasv1alpha4.Migration) error {
 	var existingMigration schemasv1alpha4.Migration
-	err = r.Get(ctx, types.NamespacedName{
+	err := r.Get(ctx, types.NamespacedName{
 		Name:      migration.Name,
 		Namespace: migration.Namespace,
 	}, &existingMigration)
 
 	if kuberneteserrors.IsNotFound(err) {
-		// create it
-		if err := controllerutil.SetControllerReference(viewInstance, &migration, r.scheme); err != nil {
-			return reconcile.Result{}, errors.Wrap(err, "failed to set owner on miration")
+		createMigration := migration.DeepCopy()
+		createMigration.Status = schemasv1alpha4.MigrationStatus{}
+
+		if err := controllerutil.SetControllerReference(owner, createMigration, r.scheme); err != nil {
+			return errors.Wrap(err, "failed to set owner on migration")
 		}
 
-		if err := r.Create(ctx, &migration); err != nil {
-			return reconcile.Result{}, errors.Wrap(err, "failed to create migration resource")
+		if err := r.Create(ctx, createMigration); err != nil {
+			return errors.Wrap(err, "failed to create migration resource")
 		}
-	} else if err == nil {
-		// update it
-		existingMigration.Status = migration.Status
-		existingMigration.Spec = migration.Spec
-		if err = r.Update(ctx, &existingMigration); err != nil {
-			return reconcile.Result{}, errors.Wrap(err, "failed to update migration resource")
+
+		createMigration.Status = migration.Status
+		if err := r.Status().Update(ctx, createMigration); err != nil {
+			return errors.Wrap(err, "failed to update migration status")
 		}
-	} else {
-		return reconcile.Result{}, errors.Wrap(err, "failed to get existing migration")
+
+		return nil
 	}
 
-	return reconcile.Result{}, nil
+	if err != nil {
+		return errors.Wrap(err, "failed to get existing migration")
+	}
+
+	existingMigration.Spec = migration.Spec
+	if err := r.Update(ctx, &existingMigration); err != nil {
+		return errors.Wrap(err, "failed to update migration resource")
+	}
+
+	existingMigration.Status = migration.Status
+	if err := r.Status().Update(ctx, &existingMigration); err != nil {
+		return errors.Wrap(err, "failed to update migration status")
+	}
+
+	return nil
 }
