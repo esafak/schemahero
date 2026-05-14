@@ -52,12 +52,14 @@ type TableStatus struct {
 	// we cannot use the resourceVersion or generation fields because updating them
 	// would cause the object to be modified again
 	LastPlannedTableSpecSHA string `json:"lastPlannedTableSpecSHA,omitempty" yaml:"lastPlannedTableSpecSHA,omitempty"`
+	LastPlannedMigrationName string `json:"lastPlannedMigrationName,omitempty" yaml:"lastPlannedMigrationName,omitempty"`
 }
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Table is the Schema for the tables API
+// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Namespace",type=string,JSONPath=`.metadata.namespace`,priority=1
 // +kubebuilder:printcolumn:name="Table",type=string,JSONPath=`.spec.name`
 // +kubebuilder:printcolumn:name="Database",type=string,JSONPath=`.spec.database`

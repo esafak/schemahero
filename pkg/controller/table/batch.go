@@ -31,10 +31,7 @@ import (
 	"github.com/schemahero/schemahero/pkg/database/plugin"
 	"github.com/schemahero/schemahero/pkg/logger"
 	"go.uber.org/zap"
-	kuberneteserrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 // pendingTable represents a table waiting to be processed in a batch
@@ -272,38 +269,13 @@ func (r *ReconcileTable) planBatch(ctx context.Context, databaseInstance *databa
 		migration.Status.Phase = schemasv1alpha4.Planned
 	}
 
-	// Create or update the migration
-	var existingMigration schemasv1alpha4.Migration
-	err = r.Get(ctx, types.NamespacedName{
-		Name:      migration.Name,
-		Namespace: migration.Namespace,
-	}, &existingMigration)
-
-	if kuberneteserrors.IsNotFound(err) {
-		// Set owner reference to database for batch migrations (for garbage collection).
-		// Using database as owner makes more sense than picking an arbitrary table
-		// since the batch spans multiple tables.
-		if err := controllerutil.SetControllerReference(databaseInstance, &migration, r.scheme); err != nil {
-			return errors.Wrap(err, "failed to set owner on migration")
-		}
-
-		if err := r.Create(ctx, &migration); err != nil {
-			return errors.Wrap(err, "failed to create migration resource")
-		}
-
-		logger.Info("created batch migration",
-			zap.String("migrationName", migration.Name),
-			zap.Int("tableCount", len(tableRefs)))
-	} else if err == nil {
-		// update it
-		existingMigration.Status = migration.Status
-		existingMigration.Spec = migration.Spec
-		if err = r.Update(ctx, &existingMigration); err != nil {
-			return errors.Wrap(err, "failed to update migration resource")
-		}
-	} else {
-		return errors.Wrap(err, "failed to get existing migration")
+	if err := r.upsertMigrationWithStatus(ctx, databaseInstance, &migration); err != nil {
+		return err
 	}
+
+	logger.Info("planned batch migration",
+		zap.String("migrationName", migration.Name),
+		zap.Int("tableCount", len(tableRefs)))
 
 	// Update status for all processed tables
 	for _, tableInstance := range processedTables {
@@ -313,6 +285,7 @@ func (r *ReconcileTable) planBatch(ctx context.Context, databaseInstance *databa
 			continue
 		}
 		tableInstance.Status.LastPlannedTableSpecSHA = tableSpecSHA
+		tableInstance.Status.LastPlannedMigrationName = migration.Name
 		if err := r.Status().Update(ctx, tableInstance); err != nil {
 			logger.Error(errors.Wrap(err, "failed to update table status"))
 		}

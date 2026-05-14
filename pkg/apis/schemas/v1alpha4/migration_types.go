@@ -70,6 +70,7 @@ type MigrationStatus struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Migration is the Schema for the migrations API
+// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Database",type=string,JSONPath=`.spec.databaseName`
 // +kubebuilder:printcolumn:name="Table",type=string,JSONPath=`.spec.tableName`
 // +kubebuilder:printcolumn:name="Namespace",type=string,JSONPath=`.metadata.namespace`,priority=1

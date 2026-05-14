@@ -52,33 +52,40 @@ func (r *ReconcileMigration) reconcileMigration(ctx context.Context, migration *
 		return reconcile.Result{}, errors.Wrap(err, "failed to apply statements")
 	}
 
-	// update the status to applied
-	migration.Status.ExecutedAt = time.Now().Unix()
-	migration.Status.Phase = schemasv1alpha4.Executed
-	err = r.Update(context.Background(), migration)
-
-	if err != nil {
-		if kuberneteserrors.IsConflict(err) {
-			updatedMigration := &schemasv1alpha4.Migration{}
-			err := r.Get(context.Background(), types.NamespacedName{
-				Name:      migration.Name,
-				Namespace: migration.Namespace,
-			}, updatedMigration)
-			if err != nil {
-				return reconcile.Result{}, errors.Wrap(err, "failed to get updated instance")
-			}
-
-			updatedMigration.Status.ExecutedAt = time.Now().Unix()
-			migration.Status.Phase = schemasv1alpha4.Executed
-			if err := r.Update(context.Background(), updatedMigration); err != nil {
-				return reconcile.Result{}, errors.Wrap(err, "failed to update")
-			}
-		} else {
-			return reconcile.Result{}, errors.Wrap(err, "failed to update")
-		}
+	if err := r.persistExecutedStatus(ctx, migration); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileMigration) persistExecutedStatus(ctx context.Context, migration *schemasv1alpha4.Migration) error {
+	migration.Status.ExecutedAt = time.Now().Unix()
+	migration.Status.Phase = schemasv1alpha4.Executed
+	err := r.Status().Update(ctx, migration)
+	if err == nil {
+		return nil
+	}
+
+	if !kuberneteserrors.IsConflict(err) {
+		return errors.Wrap(err, "failed to update migration status")
+	}
+
+	updatedMigration := &schemasv1alpha4.Migration{}
+	if err := r.Get(ctx, types.NamespacedName{
+		Name:      migration.Name,
+		Namespace: migration.Namespace,
+	}, updatedMigration); err != nil {
+		return errors.Wrap(err, "failed to get updated migration")
+	}
+
+	updatedMigration.Status.ExecutedAt = time.Now().Unix()
+	updatedMigration.Status.Phase = schemasv1alpha4.Executed
+	if err := r.Status().Update(ctx, updatedMigration); err != nil {
+		return errors.Wrap(err, "failed to update migration status")
+	}
+
+	return nil
 }
 
 func shouldApplyMigration(migration *schemasv1alpha4.Migration) bool {

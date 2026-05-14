@@ -19,7 +19,6 @@ import (
 	kuberneteserrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -338,30 +337,8 @@ func (r *ReconcileTable) plan(ctx context.Context, databaseInstance *databasesv1
 		migration.Status.Phase = schemasv1alpha4.Planned
 	}
 
-	var existingMigration schemasv1alpha4.Migration
-	err = r.Get(ctx, types.NamespacedName{
-		Name:      migration.Name,
-		Namespace: migration.Namespace,
-	}, &existingMigration)
-
-	if kuberneteserrors.IsNotFound(err) {
-		// create it
-		if err := controllerutil.SetControllerReference(tableInstance, &migration, r.scheme); err != nil {
-			return reconcile.Result{}, errors.Wrap(err, "failed to set owner on miration")
-		}
-
-		if err := r.Create(ctx, &migration); err != nil {
-			return reconcile.Result{}, errors.Wrap(err, "failed to create migration resource")
-		}
-	} else if err == nil {
-		// update it
-		existingMigration.Status = migration.Status
-		existingMigration.Spec = migration.Spec
-		if err = r.Update(ctx, &existingMigration); err != nil {
-			return reconcile.Result{}, errors.Wrap(err, "failed to update migration resource")
-		}
-	} else {
-		return reconcile.Result{}, errors.Wrap(err, "failed to get existing migration")
+	if err := r.upsertMigrationWithStatus(ctx, tableInstance, &migration); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	// Update the table status with the SHA we just planned
@@ -371,6 +348,7 @@ func (r *ReconcileTable) plan(ctx context.Context, databaseInstance *databasesv1
 		return reconcile.Result{}, errors.Wrap(err, "failed to get table sha for status update")
 	}
 	tableInstance.Status.LastPlannedTableSpecSHA = tableSpecSHA
+	tableInstance.Status.LastPlannedMigrationName = migration.Name
 	if err := r.Status().Update(ctx, tableInstance); err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to update table status")
 	}

@@ -10,6 +10,9 @@ import (
 	testclient "github.com/schemahero/schemahero/pkg/client/schemaheroclientset/fake"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func Test_getDatabaseFromMigration(t *testing.T) {
@@ -132,5 +135,43 @@ func Test_shouldApplyMigration(t *testing.T) {
 			got := shouldApplyMigration(tt.migration)
 			assert.Equal(t, tt.want, got)
 		})
+	}
+}
+
+func TestPersistExecutedStatus_UsesStatusSubresource(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := schemasv1alpha4.SchemeBuilder.AddToScheme(scheme); err != nil {
+		t.Fatalf("add schemas api to scheme: %v", err)
+	}
+
+	migration := &schemasv1alpha4.Migration{
+		ObjectMeta: metav1.ObjectMeta{Name: "abc1234", Namespace: "default"},
+		Status: schemasv1alpha4.MigrationStatus{
+			ApprovedAt: time.Now().Unix(),
+		},
+	}
+
+	client := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithStatusSubresource(&schemasv1alpha4.Migration{}).
+		WithObjects(migration).
+		Build()
+
+	r := &ReconcileMigration{Client: client, scheme: scheme}
+
+	if err := r.persistExecutedStatus(context.Background(), migration); err != nil {
+		t.Fatalf("persist executed status: %v", err)
+	}
+
+	var updated schemasv1alpha4.Migration
+	if err := client.Get(context.Background(), types.NamespacedName{Name: migration.Name, Namespace: migration.Namespace}, &updated); err != nil {
+		t.Fatalf("get updated migration: %v", err)
+	}
+
+	if updated.Status.Phase != schemasv1alpha4.Executed {
+		t.Fatalf("expected phase %q, got %q", schemasv1alpha4.Executed, updated.Status.Phase)
+	}
+	if updated.Status.ExecutedAt == 0 {
+		t.Fatalf("expected executedAt to be set")
 	}
 }
