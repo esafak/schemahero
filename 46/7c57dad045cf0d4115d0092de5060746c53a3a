@@ -1,0 +1,44 @@
+pkg/controller/table/reconcile_table.go
+  s_5df874a8ab2be2::t_29591c9d6ebc6d 340-341,351
+pkg/controller/table/batch.go
+  s_5df874a8ab2be2::t_cf79305565d92b 276-278
+  s_5df874a8ab2be2::t_25f9a00a8b0e6a 272-273,288
+pkg/controller/migration/reconcile_migration_test.go
+  s_5df874a8ab2be2::t_966d609be6e8a2 13-15,140-175
+pkg/installer/assets/schemas.schemahero.io_migrations.yaml
+  s_5df874a8ab2be2::t_451ddc70aecd24 69-86,125-126
+pkg/apis/schemas/v1alpha4/zz_generated.deepcopy.go
+  s_5df874a8ab2be2::t_451ddc70aecd24 589,646-650,1077-1083,1738-1750
+pkg/apis/schemas/v1alpha4/table_types.go
+  s_5df874a8ab2be2::t_5ac616475ba58c 55,62
+config/crds/v1/schemas.schemahero.io_tables.yaml
+  s_5df874a8ab2be2::t_451ddc70aecd24 204-207,510-513,938-941,1057-1058,1070-1071
+pkg/controller/table/migration_status.go
+  s_5df874a8ab2be2::t_6f0478c32f4565 1-56
+config/crds/v1/schemas.schemahero.io_migrations.yaml
+  s_5df874a8ab2be2::t_451ddc70aecd24 69-86,125-126
+pkg/controller/migration/reconcile_migration.go
+  s_5df874a8ab2be2::t_3e044fce2b9ee4 55-62,65-68,70-71,74-88
+pkg/installer/assets/schemas.schemahero.io_tables.yaml
+  s_5df874a8ab2be2::t_451ddc70aecd24 204-207,510-513,938-941,1057-1058,1070-1071
+pkg/controller/table/migration_status_test.go
+  s_5df874a8ab2be2::t_a07dc1d1f330c9 1-106
+pkg/apis/schemas/v1alpha4/migration_types.go
+  s_5df874a8ab2be2::t_b12446247c2841 73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "467c57dad045cf0d4115d0092de5060746c53a3a",
+  "prompts": {},
+  "sessions": {
+    "s_5df874a8ab2be2": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dc6210daffedmNbnVYHdx5OKu",
+        "model": "gpt-5.3-codex"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
