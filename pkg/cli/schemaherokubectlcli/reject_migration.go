@@ -79,7 +79,7 @@ func RejectMigrationCmd() *cobra.Command {
 				if migration.Status.Phase == v1alpha4.Planned {
 					migration.Status.RejectedAt = time.Now().Unix()
 					migration.Status.Phase = v1alpha4.Rejected
-					if _, err := schemasClient.Migrations(namespaceName).Update(ctx, migration, metav1.UpdateOptions{}); err != nil {
+					if _, err := schemasClient.Migrations(namespaceName).UpdateStatus(ctx, migration, metav1.UpdateOptions{}); err != nil {
 						return err
 					}
 

@@ -353,12 +353,20 @@ func (r *ReconcileTable) plan(ctx context.Context, databaseInstance *databasesv1
 		if err := r.Create(ctx, &migration); err != nil {
 			return reconcile.Result{}, errors.Wrap(err, "failed to create migration resource")
 		}
+
+		if err := r.Status().Update(ctx, &migration); err != nil {
+			return reconcile.Result{}, errors.Wrap(err, "failed to update migration status")
+		}
 	} else if err == nil {
 		// update it
-		existingMigration.Status = migration.Status
 		existingMigration.Spec = migration.Spec
 		if err = r.Update(ctx, &existingMigration); err != nil {
 			return reconcile.Result{}, errors.Wrap(err, "failed to update migration resource")
+		}
+
+		existingMigration.Status = migration.Status
+		if err = r.Status().Update(ctx, &existingMigration); err != nil {
+			return reconcile.Result{}, errors.Wrap(err, "failed to update migration status")
 		}
 	} else {
 		return reconcile.Result{}, errors.Wrap(err, "failed to get existing migration")

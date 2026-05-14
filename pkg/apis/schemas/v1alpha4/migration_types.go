@@ -75,6 +75,7 @@ type MigrationStatus struct {
 // +kubebuilder:printcolumn:name="Namespace",type=string,JSONPath=`.metadata.namespace`,priority=1
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:subresource:status
 // +k8s:openapi-gen=true
 type Migration struct {
 	metav1.TypeMeta   `json:",inline"`

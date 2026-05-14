@@ -82,7 +82,7 @@ func ApproveMigrationCmd() *cobra.Command {
 
 				migration.Status.ApprovedAt = time.Now().Unix()
 				migration.Status.Phase = v1alpha4.Approved
-				if _, err := schemasClient.Migrations(namespaceName).Update(ctx, migration, metav1.UpdateOptions{}); err != nil {
+				if _, err := schemasClient.Migrations(namespaceName).UpdateStatus(ctx, migration, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 

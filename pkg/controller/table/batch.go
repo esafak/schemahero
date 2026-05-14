@@ -291,15 +291,23 @@ func (r *ReconcileTable) planBatch(ctx context.Context, databaseInstance *databa
 			return errors.Wrap(err, "failed to create migration resource")
 		}
 
+		if err := r.Status().Update(ctx, &migration); err != nil {
+			return errors.Wrap(err, "failed to update migration status")
+		}
+
 		logger.Info("created batch migration",
 			zap.String("migrationName", migration.Name),
 			zap.Int("tableCount", len(tableRefs)))
 	} else if err == nil {
 		// update it
-		existingMigration.Status = migration.Status
 		existingMigration.Spec = migration.Spec
 		if err = r.Update(ctx, &existingMigration); err != nil {
 			return errors.Wrap(err, "failed to update migration resource")
+		}
+
+		existingMigration.Status = migration.Status
+		if err = r.Status().Update(ctx, &existingMigration); err != nil {
+			return errors.Wrap(err, "failed to update migration status")
 		}
 	} else {
 		return errors.Wrap(err, "failed to get existing migration")
