@@ -1,0 +1,19 @@
+pkg/controller/view/reconcile_view.go
+  s_603b12e7e79b23::t_a0ac4c4ca15815 20,229-236,238,244-248,251-252,254-257,259-260,263-277
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "ad97fbddead704f5038117052eb8ec6dbb6945f9",
+  "prompts": {},
+  "sessions": {
+    "s_603b12e7e79b23": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1db24ada0ffegIrjnQZ7k1s5oG",
+        "model": "gpt-5.3-codex"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
