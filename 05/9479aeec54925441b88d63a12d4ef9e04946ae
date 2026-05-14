@@ -1,0 +1,27 @@
+pkg/installer/assets/schemas.schemahero.io_migrations.yaml
+  s_5ed9a784c2a9a5::t_05e4d706cb47c0 107-108
+pkg/controller/table/batch.go
+  s_5ed9a784c2a9a5::t_535940e457514a 296-299,309-312
+pkg/controller/view/reconcile_view.go
+  s_5ed9a784c2a9a5::t_6467bb950c4086 243-246,253-256
+pkg/installer/assets/v1/schemas.schemahero.io_migrations.yaml
+  s_5ed9a784c2a9a5::t_2e3a102780dd24 107-108
+pkg/cli/schemaherokubectlcli/reject_migration.go
+  s_5ed9a784c2a9a5::t_af9add886eea41 82
+pkg/controller/table/reconcile_table.go
+  s_5ed9a784c2a9a5::t_2f74595bdbc6c4 26-31,54-119,436-439,446-449
+config/crds/v1/schemas.schemahero.io_migrations.yaml
+  s_5ed9a784c2a9a5::t_cec6c290c54816 107-108
+pkg/apis/schemas/v1alpha4/migration_types.go
+  s_5ed9a784c2a9a5::t_6564607ebf6d5c 78
+pkg/cli/schemaherokubectlcli/approve_migration.go
+  s_5ed9a784c2a9a5::t_bd515392073209 85
+pkg/controller/migration/reconcile_migration.go
+  s_5ed9a784c2a9a5::t_b31edac6d1f900 58,63,72-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "059479aeec54925441b88d63a12d4ef9e04946ae",
+  "prompts": {}
+}
