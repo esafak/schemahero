@@ -1,0 +1,26 @@
+pkg/apis/schemas/v1alpha4/table_types.go
+  s_e24bcee0b59e54::t_f3d7453f76b595 55-59
+pkg/controller/table/reconcile_table.go
+  s_e24bcee0b59e54::t_06cf9af8de2de3 326-328,334
+  s_e24bcee0b59e54::t_1145e22d127ec8 403-405,411
+  s_e24bcee0b59e54::t_4d44de188805b8 41-48,51,64,67,70
+pkg/controller/table/batch.go
+  s_e24bcee0b59e54::t_0ee22b8cadb26a 211-212,216
+  s_e24bcee0b59e54::t_098dfed1ec12b8 311,319
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "ed9616bb84966c6ece10d3bcea40a77cacdaaacd",
+  "prompts": {},
+  "sessions": {
+    "s_e24bcee0b59e54": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dc335cfeffePOZhyc7CsCniPm",
+        "model": "glm-5.1"
+      },
+      "human_author": "Emre Şafak <3928300+esafak@users.noreply.github.com>"
+    }
+  }
+}
