@@ -1,0 +1,37 @@
+pkg/controller/migration/reconcile_migration.go
+  s_5ed9a784c2a9a5::t_b31edac6d1f900 58,63,72-73
+pkg/controller/view/reconcile_view.go
+  s_5ed9a784c2a9a5::t_6467bb950c4086 243-246,253-256
+config/crds/v1/schemas.schemahero.io_migrations.yaml
+  s_5ed9a784c2a9a5::t_cec6c290c54816 107-108
+pkg/installer/assets/v1/schemas.schemahero.io_migrations.yaml
+  s_5ed9a784c2a9a5::t_2e3a102780dd24 107-108
+pkg/cli/schemaherokubectlcli/approve_migration.go
+  s_5ed9a784c2a9a5::t_bd515392073209 85
+pkg/installer/assets/schemas.schemahero.io_migrations.yaml
+  s_5ed9a784c2a9a5::t_05e4d706cb47c0 107-108
+pkg/cli/schemaherokubectlcli/reject_migration.go
+  s_5ed9a784c2a9a5::t_af9add886eea41 82
+pkg/apis/schemas/v1alpha4/migration_types.go
+  s_5ed9a784c2a9a5::t_6564607ebf6d5c 78
+pkg/controller/table/batch.go
+  s_5ed9a784c2a9a5::t_535940e457514a 294-297,307-310
+pkg/controller/table/reconcile_table.go
+  s_5ed9a784c2a9a5::t_2f74595bdbc6c4 356-359,366-369
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "f1f0e2768d693cce3212352f0c9d1a5b0c5e75ab",
+  "prompts": {},
+  "sessions": {
+    "s_5ed9a784c2a9a5": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dbfe0f5bffe6xpeMrhCs1U1nV",
+        "model": "glm-5.1"
+      },
+      "human_author": null
+    }
+  }
+}
