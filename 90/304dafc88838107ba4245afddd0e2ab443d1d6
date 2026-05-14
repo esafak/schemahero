@@ -1,0 +1,41 @@
+pkg/apis/schemas/v1alpha4/table_types.go
+  s_e24bcee0b59e54::t_f3d7453f76b595 55-58,62
+  s_e24bcee0b59e54::t_e3e5a07817a57d 59-61
+pkg/installer/assets/v1/schemas.schemahero.io_tables.yaml
+  s_e24bcee0b59e54::t_caf7844c6f1a98 1010-1015
+config/crds/v1/schemas.schemahero.io_tables.yaml
+  s_e24bcee0b59e54::t_11b0fc8f60b869 1045-1050
+config/crds/v1beta1/schemas.schemahero.io_tables.yaml
+  s_e24bcee0b59e54::t_f1bc8e87ceb466 502-507
+pkg/controller/table/batch.go
+  s_e24bcee0b59e54::t_0ee22b8cadb26a 211
+  s_e24bcee0b59e54::t_db4c72381df8bf 212,216
+  s_e24bcee0b59e54::t_098dfed1ec12b8 311,319
+pkg/controller/table/reconcile_table.go
+  s_e24bcee0b59e54::t_57fd362b2f9142 51-55,57-59,83-88
+  s_e24bcee0b59e54::t_3de35437ff5306 378
+  s_e24bcee0b59e54::t_f9a4a58182a3e1 50,56,60-68,71-81,89
+  s_e24bcee0b59e54::t_4d44de188805b8 47-49,90-92,108,114
+  s_e24bcee0b59e54::t_bde9ae7758b288 26-31
+  s_e24bcee0b59e54::t_852dc1d44ae60a 69-70,82
+  s_e24bcee0b59e54::t_06cf9af8de2de3 370-372
+  s_e24bcee0b59e54::t_1145e22d127ec8 447-449,455
+pkg/installer/assets/schemas.schemahero.io_tables.yaml
+  s_e24bcee0b59e54::t_42e6edcedbb6d5 1045-1050
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "90304dafc88838107ba4245afddd0e2ab443d1d6",
+  "prompts": {},
+  "sessions": {
+    "s_e24bcee0b59e54": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1dc335cfeffePOZhyc7CsCniPm",
+        "model": "glm-5.1"
+      },
+      "human_author": null
+    }
+  }
+}
