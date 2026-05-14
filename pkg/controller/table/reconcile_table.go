@@ -23,6 +23,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+// noMigrationNeeded is a sentinel value stored in TableStatus.LastPlannedMigrationName
+// to indicate that the table was confirmed in-sync and no migration was created.
+// This distinguishes "known in-sync" from the legacy zero-value (""), which means
+// the field was never populated and requires a fallback lookup.
+const noMigrationNeeded = "-"
+
 // reconcileTable is called after filtering events that are not relevant to this
 // controller. this function is the main reconcile loop for the table type
 func (r *ReconcileTable) reconcileTable(ctx context.Context, instance *schemasv1alpha4.Table) (reconcile.Result, error) {
@@ -38,10 +44,52 @@ func (r *ReconcileTable) reconcileTable(ctx context.Context, instance *schemasv1
 		return reconcile.Result{}, errors.Wrap(err, "failed to get instance sha")
 	}
 	if instance.Status.LastPlannedTableSpecSHA == currentTableSpecSHA {
-		// The spec hasn't changed, but the migration for this SHA may have been
-		// deleted (e.g. by a flush). Verify the migration still exists before
-		// skipping reconciliation.
-		migrationName := currentTableSpecSHA[:7]
+		// The spec hasn't changed since the last plan. If a migration was created,
+		// verify it still exists (it may have been deleted by a flush). If the table
+		// was in sync and no migration was created, there's nothing to check.
+		migrationName := instance.Status.LastPlannedMigrationName
+		if migrationName == noMigrationNeeded {
+			// Last plan confirmed the table is in-sync — no migration was created.
+			return reconcile.Result{}, nil
+		}
+
+		if migrationName == "" {
+			// Legacy Table upgraded from a version that didn't store migration names.
+			// Fall back to the legacy name format (SHA[:7]) to avoid silently
+			// skipping deleted-migration detection.
+			if currentTableSpecSHA != "" {
+				legacyMigrationName := currentTableSpecSHA[:7]
+				existingMigration := &schemasv1alpha4.Migration{}
+				err := r.Get(ctx, types.NamespacedName{
+					Name:      legacyMigrationName,
+					Namespace: instance.Namespace,
+				}, existingMigration)
+
+				if err == nil {
+					// Legacy migration exists — backfill the migration name so
+					// future reconciles use the direct lookup path.
+					instance.Status.LastPlannedMigrationName = legacyMigrationName
+					if updateErr := r.Status().Update(ctx, instance); updateErr != nil {
+						return reconcile.Result{}, errors.Wrap(updateErr, "failed to backfill migration name")
+					}
+					return reconcile.Result{}, nil
+				}
+
+				if !kuberneteserrors.IsNotFound(err) {
+					return reconcile.Result{}, errors.Wrap(err, "failed to check for legacy migration")
+				}
+
+				// Legacy migration also not found — the table was in sync and
+				// no migration was ever created. Backfill the sentinel so
+				// future reconciles skip this legacy fallback entirely.
+				instance.Status.LastPlannedMigrationName = noMigrationNeeded
+				if updateErr := r.Status().Update(ctx, instance); updateErr != nil {
+					return reconcile.Result{}, errors.Wrap(updateErr, "failed to backfill migration name")
+				}
+			}
+			return reconcile.Result{}, nil
+		}
+
 		existingMigration := &schemasv1alpha4.Migration{}
 		err := r.Get(ctx, types.NamespacedName{
 			Name:      migrationName,
@@ -57,12 +105,13 @@ func (r *ReconcileTable) reconcileTable(ctx context.Context, instance *schemasv1
 			return reconcile.Result{}, errors.Wrap(err, "failed to check for existing migration")
 		}
 
-		// Migration was deleted — clear the SHA so we re-plan on next reconcile
+		// Migration was deleted — clear the SHA and migration name so we re-plan
 		logger.Info("table spec SHA matches but migration was deleted, re-planning",
 			zap.String("tableName", instance.Name),
 			zap.String("migrationName", migrationName))
 
 		instance.Status.LastPlannedTableSpecSHA = ""
+		instance.Status.LastPlannedMigrationName = ""
 		if err := r.Status().Update(ctx, instance); err != nil {
 			return reconcile.Result{}, errors.Wrap(err, "failed to clear last planned SHA")
 		}
@@ -318,13 +367,15 @@ func (r *ReconcileTable) plan(ctx context.Context, databaseInstance *databasesv1
 			zap.String("databaseName", databaseInstance.Name),
 			zap.String("tableName", tableInstance.Name))
 
-		// Update the status to reflect that we've planned this table spec
-		// This prevents re-logging on subsequent reconciles
+		// Update the status to reflect that we've planned this table spec.
+		// Set SHA and the noMigrationNeeded sentinel to signal that the table
+		// is in sync and no migration was created.
 		tableSpecSHA, err := tableInstance.GetSHA()
 		if err != nil {
 			return reconcile.Result{}, errors.Wrap(err, "failed to get table sha for status update")
 		}
 		tableInstance.Status.LastPlannedTableSpecSHA = tableSpecSHA
+		tableInstance.Status.LastPlannedMigrationName = noMigrationNeeded
 		if err := r.Status().Update(ctx, tableInstance); err != nil {
 			return reconcile.Result{}, errors.Wrap(err, "failed to update table status")
 		}
@@ -393,13 +444,15 @@ func (r *ReconcileTable) plan(ctx context.Context, databaseInstance *databasesv1
 		return reconcile.Result{}, errors.Wrap(err, "failed to get existing migration")
 	}
 
-	// Update the table status with the SHA we just planned
-	// This prevents re-planning on subsequent reconciles
+	// Update the table status with the SHA and migration name we just planned.
+	// This prevents re-planning on subsequent reconciles. The migration name
+	// is stored so the early-exit check can verify the migration still exists.
 	tableSpecSHA, err := tableInstance.GetSHA()
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to get table sha for status update")
 	}
 	tableInstance.Status.LastPlannedTableSpecSHA = tableSpecSHA
+	tableInstance.Status.LastPlannedMigrationName = tableSHA
 	if err := r.Status().Update(ctx, tableInstance); err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to update table status")
 	}

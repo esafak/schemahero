@@ -208,10 +208,12 @@ func (r *ReconcileTable) planBatch(ctx context.Context, databaseInstance *databa
 				zap.String("databaseName", databaseInstance.Name),
 				zap.String("tableName", tableInstance.Name))
 
-			// Update status even if no changes needed
+			// Update status even if no changes needed.
+			// Set SHA and the in-sync sentinel so future reconciles skip immediately.
 			tableSpecSHA, err := tableInstance.GetSHA()
 			if err == nil {
 				tableInstance.Status.LastPlannedTableSpecSHA = tableSpecSHA
+				tableInstance.Status.LastPlannedMigrationName = noMigrationNeeded
 				if err := r.Status().Update(ctx, tableInstance); err != nil {
 					logger.Error(errors.Wrap(err, "failed to update table status"))
 				}
@@ -306,6 +308,7 @@ func (r *ReconcileTable) planBatch(ctx context.Context, databaseInstance *databa
 	}
 
 	// Update status for all processed tables
+	batchMigrationName := migration.Name
 	for _, tableInstance := range processedTables {
 		tableSpecSHA, err := tableInstance.GetSHA()
 		if err != nil {
@@ -313,6 +316,7 @@ func (r *ReconcileTable) planBatch(ctx context.Context, databaseInstance *databa
 			continue
 		}
 		tableInstance.Status.LastPlannedTableSpecSHA = tableSpecSHA
+		tableInstance.Status.LastPlannedMigrationName = batchMigrationName
 		if err := r.Status().Update(ctx, tableInstance); err != nil {
 			logger.Error(errors.Wrap(err, "failed to update table status"))
 		}

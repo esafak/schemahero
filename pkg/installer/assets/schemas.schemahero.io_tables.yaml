@@ -1042,6 +1042,12 @@ spec:
           status:
             description: TableStatus defines the observed state of Table
             properties:
+              lastPlannedMigrationName:
+                description: |-
+                  LastPlannedMigrationName is the name of the migration created during the last
+                  successful plan. Empty when the table was in sync and no migration was needed.
+                  Used to detect deleted migrations and trigger re-planning.
+                type: string
               lastPlannedTableSpecSHA:
                 description: |-
                   We store the SHA of the table spec from the last time we executed a plan to

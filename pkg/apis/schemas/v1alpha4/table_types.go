@@ -52,6 +52,13 @@ type TableStatus struct {
 	// we cannot use the resourceVersion or generation fields because updating them
 	// would cause the object to be modified again
 	LastPlannedTableSpecSHA string `json:"lastPlannedTableSpecSHA,omitempty" yaml:"lastPlannedTableSpecSHA,omitempty"`
+
+	// LastPlannedMigrationName is the name of the migration created during the last
+	// successful plan. The sentinel value "-" is stored when the table was confirmed
+	// in-sync and no migration was needed. An empty string indicates a legacy Table
+	// upgraded from a version that did not populate this field.
+	// Used to detect deleted migrations and trigger re-planning.
+	LastPlannedMigrationName string `json:"lastPlannedMigrationName,omitempty" yaml:"lastPlannedMigrationName,omitempty"`
 }
 
 // +genclient
